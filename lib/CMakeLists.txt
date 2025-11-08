@@ -10,5 +10,6 @@ set_target_properties(basedline PROPERTIES
 
 target_sources(basedline PRIVATE
 	src/basedline.cpp
+	src/tty.cpp
 )
 target_include_directories(basedline PUBLIC include/)

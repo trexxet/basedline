@@ -1,6 +1,7 @@
 #include "basedline.hpp"
 
 int main() {
-	Basedline::run();
+	Basedline::Basedline bl;
+	bl.read ("> ");
 	return 0;
 }

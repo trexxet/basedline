@@ -1,35 +1,69 @@
 #include "tty.hpp"
 // TODO: Posix support
 
+#include <cstdio>
+
+#if defined(_WIN32)
+#define ESC "\x1b"
+#define CSI ESC "["
+#endif
+
 namespace Basedline {
 
-void TTY::enableRaw () {
-	if (raw) return;
+bool TTY::enableRaw () {
+	if (raw) return true;
 #if defined(_WIN32)
-	DWORD rawMode = hconModeSave & ~(
+	DWORD rawInMode = hInModeSave & ~(
 		ENABLE_ECHO_INPUT |
-		ENABLE_LINE_INPUT
+		ENABLE_LINE_INPUT |
+		ENABLE_PROCESSED_INPUT
 	);
-	SetConsoleMode (hcon, rawMode);
+	DWORD rawOutMode = hOutModeSave |
+		ENABLE_PROCESSED_OUTPUT |
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	return SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode);
 #endif
 }
 
-void TTY::disableRaw () {
-	if (!raw) return;
+bool TTY::disableRaw () {
+	if (!raw) return true;
 #if defined(_WIN32)
-	SetConsoleMode (hcon, hconModeSave);
+	return SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave);
 #endif
 }
 
-void TTY::setRaw (bool raw) {
-	raw ? enableRaw() : disableRaw();
+bool TTY::setRaw (bool raw) {
+	bool isSet = raw ? enableRaw() : disableRaw();
 	this->raw = raw;
+	return isSet;
+}
+
+int TTY::getc () {
+	return std::fgetc (stdin);
+}
+
+void TTY::putc (int c) {
+	std::fputc (c, stdout);
+}
+
+void TTY::cntrl (int c) {
+	switch (c) {
+		case '\b':
+			backspace(); break;
+		default: break;
+	}
+}
+
+void TTY::backspace () {
+	std::printf (CSI "0M");
 }
 
 TTY::TTY () {
 #if defined(_WIN32)
-	hcon = GetStdHandle (STD_INPUT_HANDLE);
-	GetConsoleMode (hcon, &hconModeSave);
+	hIn = GetStdHandle (STD_INPUT_HANDLE);
+	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
+	GetConsoleMode (hIn, &hInModeSave);
+	GetConsoleMode (hOut, &hOutModeSave);
 #endif
 }
 

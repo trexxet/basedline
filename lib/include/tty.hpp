@@ -11,14 +11,20 @@ class TTY {
 	bool raw = false;
 
 #if defined(_WIN32)
-	HANDLE hcon;
-	DWORD hconModeSave;
+	HANDLE hIn, hOut;
+	DWORD hInModeSave, hOutModeSave;
 #endif
 
-	void enableRaw ();
-	void disableRaw ();
+	bool enableRaw ();
+	bool disableRaw ();
 public:
-	void setRaw (bool raw);
+	bool setRaw (bool raw);
+
+	int getc ();
+	void putc (int c);
+	void cntrl (int c);
+
+	void backspace ();
 
 	TTY ();
 };

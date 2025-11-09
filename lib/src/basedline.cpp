@@ -15,18 +15,26 @@ void Basedline::read (std::string_view prompt) {
 
 	int c;
 	while (true) {
-		c = std::fgetc (stdin);
+		c = tty.getc();
 		if (c == EOF) break;
-		std::fputc (c, stdout);
+		if (std::isprint (c)) {
+			linebuf += c;
+			tty.putc (c);
+		} else
+		if (std::iscntrl (c)) {
+			tty.cntrl (c);
+		}
 	}
 }
 
 Basedline::Basedline () {
-	tty.setRaw (true);
+	if (!tty.setRaw (true))
+		std::fprintf (stderr, "Failed to enable tty raw mode");
 }
 
 Basedline::~Basedline () {
-	tty.setRaw (false);
+	if (!tty.setRaw (false))
+		std::fprintf (stderr, "Failed to disable tty raw mode");
 }
 
 }

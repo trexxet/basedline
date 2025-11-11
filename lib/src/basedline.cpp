@@ -13,17 +13,16 @@ void Basedline::read (std::string_view prompt) {
 	linebuf = std::string (prompt);
 	pbuf();
 
+	TTY::Input input;
 	int c;
 	while (true) {
-		c = tty.getc();
-		if (c == EOF) break;
+		input = tty.getc();
+		if (!input.ok() || input.is_eof()) break;
+		c = input.c();
 		if (std::isprint (c)) {
 			linebuf += c;
 			tty.putc (c);
-		} else
-		if (std::iscntrl (c)) {
-			tty.cntrl (c);
-		}
+		};
 	}
 }
 

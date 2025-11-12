@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <string>
 #include <string_view>
 
 // TODO: Posix support
@@ -31,7 +32,22 @@ public:
 		static Input make_err () { return {}; }
 	};
 
+	class Cursor {
+		TTY& tty;
+#if defined(_WIN32)
+		COORD pos;
+#endif
+	public:
+		struct {
+			short xMin, xMax, yMin, yMax;
+		} bounds;
+		void shift (short dx);
+		void move (short x, short y);
+		Cursor (TTY& tty) : tty (tty) {};
+	} cursor;
+
 private:
+	friend class Cursor;
 	bool raw = false;
 
 #if defined(_WIN32)
@@ -39,11 +55,10 @@ private:
 	DWORD hInModeSave, hOutModeSave;
 #endif
 
-	bool enableRaw ();
-	bool disableRaw ();
+	std::string prompt;
 
-	void moveCursor (short dx);
-	void moveCursor (short x, short y);
+	bool enable_raw ();
+	bool disable_raw ();
 
 	/// @brief Process Ctrl keypress
 	/// @return True if current keypress should be skipped
@@ -53,12 +68,11 @@ private:
 	void backspace ();
 
 public:
-	bool setRaw (bool raw);
+	bool set_raw (bool raw);
+	void set_prompt (std::string_view prompt);
 
 	Input getc ();
 	void putc (int c);
-
-	std::string_view prompt;
 
 	TTY ();
 };

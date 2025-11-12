@@ -11,8 +11,9 @@ void Basedline::pbuf () {
 
 void Basedline::read (std::string_view prompt) {
 	linebuf = std::string (prompt);
-	tty.prompt = prompt;
 	pbuf();
+
+	tty.set_prompt (prompt);
 
 	TTY::Input input;
 	int c;
@@ -28,12 +29,12 @@ void Basedline::read (std::string_view prompt) {
 }
 
 Basedline::Basedline () {
-	if (!tty.setRaw (true))
+	if (!tty.set_raw (true))
 		std::fprintf (stderr, "Failed to enable tty raw mode");
 }
 
 Basedline::~Basedline () {
-	if (!tty.setRaw (false))
+	if (!tty.set_raw (false))
 		std::fprintf (stderr, "Failed to disable tty raw mode");
 }
 

@@ -3,28 +3,23 @@
 
 #include <cstdio>
 
-#if defined(_WIN32)
-#define ESC "\x1b"
-#define CSI ESC "["
-#endif
+#define CSI "[\x1b"
 
 namespace Basedline {
+
+#if defined(BASEDLINE_DEBUG) && 0
+#define bl_debug(fmt, ...) { std::fprintf(stderr, fmt, ##__VA_ARGS__); }
+#else
+#define bl_debug(fmt, ...)
+#endif
 
 bool TTY::enableRaw () {
 	if (raw) return true;
 #if defined(_WIN32)
-/*
-	DWORD rawInMode = hInModeSave & ~(
-		ENABLE_ECHO_INPUT |
-		ENABLE_LINE_INPUT |
-		ENABLE_PROCESSED_INPUT
-	);
-*/
 	DWORD rawInMode = hInModeSave;
 	DWORD rawOutMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
-		ENABLE_WRAP_AT_EOL_OUTPUT |
-		ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		ENABLE_WRAP_AT_EOL_OUTPUT;
 	return SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode);
 #endif
 }
@@ -36,14 +31,30 @@ bool TTY::disableRaw () {
 #endif
 }
 
+void TTY::moveCursor (short dx) {
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	if (!GetConsoleScreenBufferInfo (hOut, &info))
+		return;
+	short x = info.dwCursorPosition.X + dx;
+	if (x < prompt.length()) return;
+	moveCursor (x, info.dwCursorPosition.Y);
+#endif
+}
+
+void TTY::moveCursor (short x, short y) {
+#if defined(_WIN32)
+	SetConsoleCursorPosition (hOut, {x, y});
+#endif
+}
+
 bool TTY::setRaw (bool raw) {
 	bool isSet = raw ? enableRaw() : disableRaw();
 	this->raw = raw;
 	return isSet;
 }
 
-void TTY::ctrl (TTY::Input& input, bool& skip) {
-	skip = false;
+bool TTY::ctrl (TTY::Input& input) {
 #if defined(_WIN32)
 	switch (input.vkey) {
 		// Handle Ctrl-D and Ctrl-Z
@@ -52,10 +63,24 @@ void TTY::ctrl (TTY::Input& input, bool& skip) {
 			input.flags[Input::Flags::IS_EOF] = true;
 			break;
 		// No other key
-		case VK_CONTROL:
-			skip = true;
-			break;
+		case VK_CONTROL: return true;
 		default: break;
+	}
+#endif
+	return false;
+}
+
+void TTY::left_right (TTY::Input& input) {
+#if defined(_WIN32)
+	switch (input.vkey) {
+		case VK_LEFT:
+			input.flags[Input::Flags::IS_LEFT] = true;
+			moveCursor (-1);
+			break;
+		case VK_RIGHT:
+			input.flags[Input::Flags::IS_RIGHT] = true;
+			moveCursor (1);
+			break;
 	}
 #endif
 }
@@ -65,38 +90,40 @@ void TTY::backspace () {
 }
 
 TTY::Input TTY::getc () {
-	Input ret;
+	Input input;
 #if defined(_WIN32)
 	while (true) {
-		INPUT_RECORD input;
-		DWORD input_count;
+		INPUT_RECORD inputRec;
+		DWORD inputCount;
 		bool skip = false;
 
-		if (!ReadConsoleInput(hIn, &input, 1, &input_count))
+		if (!ReadConsoleInput(hIn, &inputRec, 1, &inputCount)
+		    || inputCount != 1
+		    || inputRec.EventType != KEY_EVENT) {
 			return Input::make_err();
-		if (input_count != 1)
-			return Input::make_err();
-		if (input.EventType != KEY_EVENT)
-			return Input::make_err();
-		if (!input.Event.KeyEvent.bKeyDown)
+		}
+		if (!inputRec.Event.KeyEvent.bKeyDown)
 			continue;
 		
-		ret.ch = input.Event.KeyEvent.uChar.AsciiChar;
-		ret.vkey = input.Event.KeyEvent.wVirtualKeyCode;
-		ret.flags[Input::Flags::OK] = true;
+		input.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
+		input.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
+		input.flags[Input::Flags::OK] = true;
 
-		DWORD mods = input.Event.KeyEvent.dwControlKeyState;
-		ret.flags[Input::Flags::HAS_CTRL] = mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
-		if (ret.flags[Input::Flags::HAS_CTRL])
-			ctrl (ret, skip);
-		if (skip)
+		// Ctrl
+		DWORD mods = inputRec.Event.KeyEvent.dwControlKeyState;
+		input.flags[Input::Flags::HAS_CTRL] = mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+		if (input.flags[Input::Flags::HAS_CTRL] && ctrl (input))
 			continue;
 
-		std::fprintf(stderr, "virt 0x%04x, chr 0x%04x ('%c') %s \n",
-			ret.vkey, ret.ch, ret.ch,
-			ret.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "");
+		// Arrows
+		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
+			left_right (input);
 
-		return ret;
+		bl_debug ("%s mods 0x%04x virt 0x%04x chr 0x%04x ('%c') \n",
+		          input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
+		          mods, input.vkey, input.ch, input.ch);
+
+		return input;
 	}
 #endif
 }

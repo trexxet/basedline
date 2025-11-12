@@ -11,6 +11,7 @@ void Basedline::pbuf () {
 
 void Basedline::read (std::string_view prompt) {
 	linebuf = std::string (prompt);
+	tty.prompt = prompt;
 	pbuf();
 
 	TTY::Input input;

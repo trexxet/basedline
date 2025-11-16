@@ -8,12 +8,12 @@
 namespace Basedline {
 
 class Basedline {
+	TTY tty;
 	std::string linebuf;
 	void pbuf ();
 public:
-	TTY tty;
-
 	void read (std::string_view prompt);
+	void print (const std::string& s);
 
 	Basedline ();
 	~Basedline ();

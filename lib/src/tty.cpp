@@ -13,24 +13,49 @@ namespace Basedline {
 #define bl_debug(fmt, ...)
 #endif
 
-void TTY::Cursor::shift (short dx) {
+void TTY::Cursor::save () {
 #if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO info;
-	if (!GetConsoleScreenBufferInfo (tty.hOut, &info))
-		return;
-	short x = info.dwCursorPosition.X + dx;
+	pos[currType] = tty.csbi().dwCursorPosition;
+#endif
+}
+
+void TTY::Cursor::set (TTY::Cursor::Type type) {
+	if (type == currType) return;
+	save();
+	move (pos[type]);
+}
+
+void TTY::Cursor::input_shift (termsize_t dx) {
+	set (Type::CurInput);
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
+	termsize_t x = csbi.dwCursorPosition.X + dx;
 	if (x < bounds.xMin) return;
-	move (x, info.dwCursorPosition.Y);
+	move ({x, csbi.dwCursorPosition.Y});
 #endif
 }
 
-void TTY::Cursor::move (short x, short y) {
+void TTY::Cursor::move (coord_t pos) {
 #if defined(_WIN32)
-	if (SetConsoleCursorPosition (tty.hOut, {x, y}))
-		pos = {x, y};
+	SetConsoleCursorPosition (tty.hOut, pos);
 #endif
 }
 
+void TTY::Cursor::input_move_down () {
+	set (Type::CurInput);
+#if defined(_WIN32)
+	termsize_t inputLineY = tty.csbi().srWindow.Bottom;
+#endif
+	move ({0, inputLineY});
+}
+
+#if defined(_WIN32)
+CONSOLE_SCREEN_BUFFER_INFO TTY::csbi () {
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo (hOut, &csbi);
+	return csbi;
+}
+#endif
 
 bool TTY::enable_raw () {
 	if (raw) return true;
@@ -39,24 +64,24 @@ bool TTY::enable_raw () {
 	DWORD rawOutMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
 		ENABLE_WRAP_AT_EOL_OUTPUT;
-	return SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode);
+	raw = (SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode));
+	return raw;
 #endif
 }
 
 bool TTY::disable_raw () {
 	if (!raw) return true;
 #if defined(_WIN32)
-	return SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave);
+	raw = !(SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave));
+	return !raw;
 #endif
 }
 
 bool TTY::set_raw (bool raw) {
-	bool isSet = raw ? enable_raw() : disable_raw();
-	this->raw = raw;
-	return isSet;
+	return raw ? enable_raw() : disable_raw();
 }
 
-void TTY::set_prompt (std::string_view prompt) {
+void TTY::set_prompt (const std::string& prompt) {
 	this->prompt = prompt;
 	// TODO: check if prompt.length fits in term
 	cursor.bounds.xMin = prompt.length();
@@ -83,11 +108,11 @@ void TTY::left_right (TTY::Input& input) {
 	switch (input.vkey) {
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
-			cursor.shift (-1);
+			cursor.input_shift (-1);
 			break;
 		case VK_RIGHT:
 			input.flags[Input::Flags::IS_RIGHT] = true;
-			cursor.shift (1);
+			cursor.input_shift (1);
 			break;
 	}
 #endif
@@ -140,13 +165,21 @@ void TTY::putc (int c) {
 	std::fputc (c, stdout);
 }
 
+void TTY::puts (const std::string& s) {
+#if defined(_WIN32)
+	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
+#endif
+}
+
 TTY::TTY () : cursor (*this) {
 #if defined(_WIN32)
+	// TODO: is hIn needed?
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hIn, &hInModeSave);
 	GetConsoleMode (hOut, &hOutModeSave);
 #endif
+	cursor.input_move_down();
 }
 
 }

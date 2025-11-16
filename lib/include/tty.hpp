@@ -2,7 +2,6 @@
 
 #include <bitset>
 #include <string>
-#include <string_view>
 
 // TODO: Posix support
 #if defined(_WIN32)
@@ -10,6 +9,11 @@
 #endif
 
 namespace Basedline {
+
+#if defined(_WIN32)
+using termsize_t = SHORT;
+using coord_t = COORD;
+#endif
 
 class TTY {
 public:
@@ -33,26 +37,33 @@ public:
 	};
 
 	class Cursor {
-		TTY& tty;
-#if defined(_WIN32)
-		COORD pos;
-#endif
 	public:
+		enum Type { CurInput, CurOutput, count };
+	private:
+		TTY& tty;
+		Type currType = CurOutput;
+		coord_t pos[Type::count];
+	public:
+		const coord_t& inputPos = pos[Type::CurInput];
+		const coord_t& outputPos = pos[Type::CurOutput];
+		void save ();
+		void set (Type type);
 		struct {
-			short xMin, xMax, yMin, yMax;
+			termsize_t xMin, xMax, yMin, yMax;
 		} bounds;
-		void shift (short dx);
-		void move (short x, short y);
-		Cursor (TTY& tty) : tty (tty) {};
+		void input_shift (termsize_t dx);
+		void move (coord_t pos);
+		void input_move_down ();
+		Cursor (TTY& tty) : tty (tty) {}
 	} cursor;
 
 private:
-	friend class Cursor;
 	bool raw = false;
 
 #if defined(_WIN32)
 	HANDLE hIn, hOut;
 	DWORD hInModeSave, hOutModeSave;
+	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
 
 	std::string prompt;
@@ -69,10 +80,11 @@ private:
 
 public:
 	bool set_raw (bool raw);
-	void set_prompt (std::string_view prompt);
+	void set_prompt (const std::string& prompt);
 
 	Input getc ();
 	void putc (int c);
+	void puts (const std::string& s);
 
 	TTY ();
 };

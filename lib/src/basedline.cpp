@@ -13,7 +13,7 @@ void Basedline::read (std::string_view prompt) {
 	linebuf = std::string (prompt);
 	pbuf();
 
-	tty.set_prompt (prompt);
+	tty.set_prompt (std::string (prompt));
 
 	TTY::Input input;
 	int c;
@@ -26,6 +26,10 @@ void Basedline::read (std::string_view prompt) {
 			tty.putc (c);
 		};
 	}
+}
+
+void Basedline::print (const std::string& s) {
+
 }
 
 Basedline::Basedline () {

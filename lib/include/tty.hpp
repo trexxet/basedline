@@ -15,7 +15,24 @@ using termsize_t = SHORT;
 using coord_t = COORD;
 #endif
 
-class TTY {
+struct ConsoleBuffer {
+#if defined(_WIN32)
+	HANDLE hIn, hOut;
+	DWORD hInModeSave, hOutModeSave;
+	CONSOLE_SCREEN_BUFFER_INFO csbi ();
+#endif
+	bool enable_raw ();
+	bool disable_raw ();
+	ConsoleBuffer ();
+protected:
+	bool raw = false;
+};
+
+class VirtualBuffer : public ConsoleBuffer {
+
+};
+
+class TTY : private ConsoleBuffer {
 public:
 	struct Input {
 		enum Flags {
@@ -40,36 +57,22 @@ public:
 	public:
 		enum Type { CurInput, CurOutput, count };
 	private:
-		TTY& tty;
-		Type currType = CurOutput;
+		ConsoleBuffer& tty;
+		Type currType;
 		coord_t pos[Type::count];
 	public:
 		const coord_t& inputPos = pos[Type::CurInput];
 		const coord_t& outputPos = pos[Type::CurOutput];
 		void save ();
 		void set (Type type);
-		struct {
-			termsize_t xMin, xMax, yMin, yMax;
-		} bounds;
-		void input_shift (termsize_t dx);
+		void input_shift (termsize_t dx, termsize_t left_constraint);
 		void move (coord_t pos);
 		void input_move_down ();
-		Cursor (TTY& tty) : tty (tty) {}
+		Cursor (ConsoleBuffer& tty);
 	} cursor;
 
 private:
-	bool raw = false;
-
-#if defined(_WIN32)
-	HANDLE hIn, hOut;
-	DWORD hInModeSave, hOutModeSave;
-	CONSOLE_SCREEN_BUFFER_INFO csbi ();
-#endif
-
 	std::string prompt;
-
-	bool enable_raw ();
-	bool disable_raw ();
 
 	/// @brief Process Ctrl keypress
 	/// @return True if current keypress should be skipped
@@ -83,8 +86,8 @@ public:
 	void set_prompt (const std::string& prompt);
 
 	Input getc ();
-	void putc (int c);
-	void puts (const std::string& s);
+	void putc (int c, Cursor::Type curType);
+	void puts (const std::string& s, Cursor::Type curType);
 
 	TTY ();
 };

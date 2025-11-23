@@ -13,6 +13,44 @@ namespace Basedline {
 #define bl_debug(fmt, ...)
 #endif
 
+#if defined(_WIN32)
+CONSOLE_SCREEN_BUFFER_INFO ConsoleBuffer::csbi () {
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo (hOut, &csbi);
+	return csbi;
+}
+#endif
+
+bool ConsoleBuffer::enable_raw () {
+	if (raw) return true;
+#if defined(_WIN32)
+	DWORD rawInMode = hInModeSave;
+	DWORD rawOutMode = hOutModeSave |
+		ENABLE_PROCESSED_OUTPUT |
+		ENABLE_WRAP_AT_EOL_OUTPUT;
+	raw = (SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode));
+	return raw;
+#endif
+}
+
+bool ConsoleBuffer::disable_raw () {
+	if (!raw) return true;
+#if defined(_WIN32)
+	raw = !(SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave));
+	return !raw;
+#endif
+}
+
+ConsoleBuffer::ConsoleBuffer () {
+#if defined(_WIN32)
+	// TODO: is hIn ever needed?
+	hIn = GetStdHandle (STD_INPUT_HANDLE);
+	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
+	GetConsoleMode (hIn, &hInModeSave);
+	GetConsoleMode (hOut, &hOutModeSave);
+#endif
+}
+
 void TTY::Cursor::save () {
 #if defined(_WIN32)
 	pos[currType] = tty.csbi().dwCursorPosition;
@@ -22,15 +60,16 @@ void TTY::Cursor::save () {
 void TTY::Cursor::set (TTY::Cursor::Type type) {
 	if (type == currType) return;
 	save();
+	currType = type;
 	move (pos[type]);
 }
 
-void TTY::Cursor::input_shift (termsize_t dx) {
+void TTY::Cursor::input_shift (termsize_t dx, termsize_t left_constraint) {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
 	termsize_t x = csbi.dwCursorPosition.X + dx;
-	if (x < bounds.xMin) return;
+	if (x < left_constraint) return;
 	move ({x, csbi.dwCursorPosition.Y});
 #endif
 }
@@ -49,32 +88,10 @@ void TTY::Cursor::input_move_down () {
 	move ({0, inputLineY});
 }
 
-#if defined(_WIN32)
-CONSOLE_SCREEN_BUFFER_INFO TTY::csbi () {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo (hOut, &csbi);
-	return csbi;
-}
-#endif
-
-bool TTY::enable_raw () {
-	if (raw) return true;
-#if defined(_WIN32)
-	DWORD rawInMode = hInModeSave;
-	DWORD rawOutMode = hOutModeSave |
-		ENABLE_PROCESSED_OUTPUT |
-		ENABLE_WRAP_AT_EOL_OUTPUT;
-	raw = (SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode));
-	return raw;
-#endif
-}
-
-bool TTY::disable_raw () {
-	if (!raw) return true;
-#if defined(_WIN32)
-	raw = !(SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave));
-	return !raw;
-#endif
+TTY::Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
+	currType = Type::CurOutput;
+	save();
+	pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
 bool TTY::set_raw (bool raw) {
@@ -84,7 +101,6 @@ bool TTY::set_raw (bool raw) {
 void TTY::set_prompt (const std::string& prompt) {
 	this->prompt = prompt;
 	// TODO: check if prompt.length fits in term
-	cursor.bounds.xMin = prompt.length();
 }
 
 bool TTY::ctrl (TTY::Input& input) {
@@ -108,11 +124,11 @@ void TTY::left_right (TTY::Input& input) {
 	switch (input.vkey) {
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
-			cursor.input_shift (-1);
+			cursor.input_shift (-1, prompt.length());
 			break;
 		case VK_RIGHT:
 			input.flags[Input::Flags::IS_RIGHT] = true;
-			cursor.input_shift (1);
+			cursor.input_shift (1, prompt.length());
 			break;
 	}
 #endif
@@ -161,24 +177,17 @@ TTY::Input TTY::getc () {
 #endif
 }
 
-void TTY::putc (int c) {
+void TTY::putc (int c, Cursor::Type curType) {
+	cursor.set (curType);
 	std::fputc (c, stdout);
 }
 
-void TTY::puts (const std::string& s) {
-#if defined(_WIN32)
-	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
-#endif
+void TTY::puts (const std::string& s, Cursor::Type curType) {
+	cursor.set (curType);
+	std::printf (s.c_str());
 }
 
-TTY::TTY () : cursor (*this) {
-#if defined(_WIN32)
-	// TODO: is hIn needed?
-	hIn = GetStdHandle (STD_INPUT_HANDLE);
-	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
-	GetConsoleMode (hIn, &hInModeSave);
-	GetConsoleMode (hOut, &hOutModeSave);
-#endif
+TTY::TTY () : ConsoleBuffer(), cursor (*this) {
 	cursor.input_move_down();
 }
 

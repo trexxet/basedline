@@ -23,13 +23,13 @@ void Basedline::read (std::string_view prompt) {
 		c = input.c();
 		if (std::isprint (c)) {
 			linebuf += c;
-			tty.putc (c);
+			tty.putc (c, TTY::Cursor::Type::CurInput);
 		};
 	}
 }
 
 void Basedline::print (const std::string& s) {
-
+	tty.puts (s, TTY::Cursor::Type::CurOutput);
 }
 
 Basedline::Basedline () {

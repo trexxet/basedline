@@ -28,8 +28,24 @@ protected:
 	bool raw = false;
 };
 
-class VirtualBuffer : public ConsoleBuffer {
+class Cursor {
+public:
+	enum Type { CurInput, CurOutput, count };
+protected:
+	ConsoleBuffer& tty;
+	Type currType;
+	coord_t pos[Type::count];
+public:
+	void save ();
+	void set (Type type);
+	void move (coord_t pos);
+	Cursor (ConsoleBuffer& tty);
+};
 
+class VirtualBuffer : public ConsoleBuffer {
+	Cursor cursor;
+public:
+	VirtualBuffer () : ConsoleBuffer(), cursor (*this) { }
 };
 
 class TTY : private ConsoleBuffer {
@@ -48,30 +64,20 @@ public:
 #if defined(_WIN32)
 		CHAR ch;
 		WORD vkey;
-		inline int c ()       { return static_cast<int> (ch); }
+		inline int c ()         { return static_cast<int> (ch); }
 #endif
 		static Input make_err () { return {}; }
 	};
 
-	class Cursor {
+	class TTYCursor : public Cursor {
 	public:
-		enum Type { CurInput, CurOutput, count };
-	private:
-		ConsoleBuffer& tty;
-		Type currType;
-		coord_t pos[Type::count];
-	public:
-		const coord_t& inputPos = pos[Type::CurInput];
-		const coord_t& outputPos = pos[Type::CurOutput];
-		void save ();
-		void set (Type type);
 		void input_shift (termsize_t dx, termsize_t left_constraint);
-		void move (coord_t pos);
 		void input_move_down ();
-		Cursor (ConsoleBuffer& tty);
 	} cursor;
 
 private:
+	VirtualBuffer vbuf;
+
 	std::string prompt;
 
 	/// @brief Process Ctrl keypress
@@ -89,7 +95,7 @@ public:
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
 
-	TTY ();
+	TTY () : ConsoleBuffer(), cursor (*this) { }
 };
 
 }

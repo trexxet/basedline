@@ -10,6 +10,7 @@ void Basedline::pbuf () {
 }
 
 void Basedline::read (std::string_view prompt) {
+	tty.cursor.input_move_down();
 	linebuf = std::string (prompt);
 	pbuf();
 
@@ -23,13 +24,13 @@ void Basedline::read (std::string_view prompt) {
 		c = input.c();
 		if (std::isprint (c)) {
 			linebuf += c;
-			tty.putc (c, TTY::Cursor::Type::CurInput);
+			tty.putc (c, Cursor::Type::CurInput);
 		};
 	}
 }
 
 void Basedline::print (const std::string& s) {
-	tty.puts (s, TTY::Cursor::Type::CurOutput);
+	tty.puts (s, Cursor::Type::CurOutput);
 }
 
 Basedline::Basedline () {

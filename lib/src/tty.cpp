@@ -51,20 +51,32 @@ ConsoleBuffer::ConsoleBuffer () {
 #endif
 }
 
-void TTY::Cursor::save () {
+void Cursor::save () {
 #if defined(_WIN32)
 	pos[currType] = tty.csbi().dwCursorPosition;
 #endif
 }
 
-void TTY::Cursor::set (TTY::Cursor::Type type) {
+void Cursor::set (Cursor::Type type) {
 	if (type == currType) return;
 	save();
 	currType = type;
 	move (pos[type]);
 }
 
-void TTY::Cursor::input_shift (termsize_t dx, termsize_t left_constraint) {
+void Cursor::move (coord_t pos) {
+#if defined(_WIN32)
+	SetConsoleCursorPosition (tty.hOut, pos);
+#endif
+}
+
+Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
+	currType = Type::CurOutput;
+	save();
+	pos[Type::CurInput] = pos[Type::CurOutput];
+}
+
+void TTY::TTYCursor::input_shift (termsize_t dx, termsize_t left_constraint) {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
@@ -74,24 +86,12 @@ void TTY::Cursor::input_shift (termsize_t dx, termsize_t left_constraint) {
 #endif
 }
 
-void TTY::Cursor::move (coord_t pos) {
-#if defined(_WIN32)
-	SetConsoleCursorPosition (tty.hOut, pos);
-#endif
-}
-
-void TTY::Cursor::input_move_down () {
+void TTY::TTYCursor::input_move_down () {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	termsize_t inputLineY = tty.csbi().srWindow.Bottom;
 #endif
 	move ({0, inputLineY});
-}
-
-TTY::Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
-	currType = Type::CurOutput;
-	save();
-	pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
 bool TTY::set_raw (bool raw) {
@@ -185,10 +185,6 @@ void TTY::putc (int c, Cursor::Type curType) {
 void TTY::puts (const std::string& s, Cursor::Type curType) {
 	cursor.set (curType);
 	std::printf (s.c_str());
-}
-
-TTY::TTY () : ConsoleBuffer(), cursor (*this) {
-	cursor.input_move_down();
 }
 
 }

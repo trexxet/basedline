@@ -36,6 +36,8 @@ protected:
 	Type currType;
 	coord_t pos[Type::count];
 public:
+	const coord_t& inputPos = pos[Type::CurInput];
+	const coord_t& outputPos = pos[Type::CurOutput];
 	void save ();
 	void set (Type type);
 	void move (coord_t pos);

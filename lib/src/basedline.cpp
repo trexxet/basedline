@@ -2,6 +2,8 @@
 
 #include <cstdio>
 
+#include "debug.hpp"
+
 namespace Basedline {
 
 /// @brief Print line buffer
@@ -34,11 +36,13 @@ void Basedline::print (const std::string& s) {
 }
 
 Basedline::Basedline () {
+	Debug::open();
 	if (!tty.set_raw (true))
 		std::fprintf (stderr, "Failed to enable tty raw mode");
 }
 
 Basedline::~Basedline () {
+	Debug::close();
 	if (!tty.set_raw (false))
 		std::fprintf (stderr, "Failed to disable tty raw mode");
 }

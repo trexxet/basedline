@@ -14,5 +14,6 @@ target_compile_definitions(basedline PRIVATE
 target_sources(basedline PRIVATE
 	src/basedline.cpp
 	src/tty.cpp
+	$<$<CONFIG:Debug>:src/debug.cpp>
 )
 target_include_directories(basedline PUBLIC include/)

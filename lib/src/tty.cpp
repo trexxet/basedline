@@ -2,16 +2,13 @@
 // TODO: Posix support
 
 #include <cstdio>
+#include <format>
+
+#include "debug.hpp"
 
 #define CSI "[\x1b"
 
 namespace Basedline {
-
-#if defined(BASEDLINE_DEBUG) && 0
-#define bl_debug(fmt, ...) { std::fprintf(stderr, fmt, ##__VA_ARGS__); }
-#else
-#define bl_debug(fmt, ...)
-#endif
 
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO ConsoleBuffer::csbi () {
@@ -168,9 +165,11 @@ TTY::Input TTY::getc () {
 		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
 			left_right (input);
 
-		bl_debug ("%s mods 0x%04x virt 0x%04x chr 0x%04x ('%c') \n",
-		          input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
-		          mods, input.vkey, input.ch, input.ch);
+		Debug::print (std::format
+			("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
+			 input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
+			 mods, input.vkey, input.ch, 
+			 std::isprint(input.ch) ? input.ch : ' '));
 
 		return input;
 	}
@@ -184,6 +183,9 @@ void TTY::putc (int c, Cursor::Type curType) {
 
 void TTY::puts (const std::string& s, Cursor::Type curType) {
 	cursor.set (curType);
+	if (curType == Cursor::Type::CurOutput) {
+		coord_t oldPos = cursor.outputPos;
+	}
 	std::printf (s.c_str());
 }
 

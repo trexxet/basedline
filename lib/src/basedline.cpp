@@ -7,16 +7,14 @@
 namespace Basedline {
 
 /// @brief Print line buffer
-void Basedline::pbuf () {
-	std::printf (linebuf.c_str());
+void Basedline::restore_input () {
+	tty.puts (linebuf, Cursor::Type::CurInput);
 }
 
 void Basedline::read (std::string_view prompt) {
-	tty.cursor.input_move_down();
+	promptLine = tty.cursor.prepare_input (prompt.length());
 	linebuf = std::string (prompt);
-	pbuf();
-
-	tty.set_prompt (std::string (prompt));
+	restore_input();
 
 	TTY::Input input;
 	int c;
@@ -29,6 +27,7 @@ void Basedline::read (std::string_view prompt) {
 			tty.putc (c, Cursor::Type::CurInput);
 		};
 	}
+	linebuf.clear();
 }
 
 void Basedline::print (const std::string& s) {

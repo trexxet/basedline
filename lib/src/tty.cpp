@@ -73,12 +73,18 @@ Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
 	pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
-void TTY::TTYCursor::input_shift (termsize_t dx, termsize_t left_constraint) {
+termsize_t TTY::TTYCursor::prepare_input (size_t promptLength) {
+	input_move_down();
+	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
+	return promptEnd.Y;
+}
+
+void TTY::TTYCursor::input_shift (termsize_t dx) {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
 	termsize_t x = csbi.dwCursorPosition.X + dx;
-	if (x < left_constraint) return;
+	if (x < promptEnd.X) return;
 	move ({x, csbi.dwCursorPosition.Y});
 #endif
 }
@@ -93,11 +99,6 @@ void TTY::TTYCursor::input_move_down () {
 
 bool TTY::set_raw (bool raw) {
 	return raw ? enable_raw() : disable_raw();
-}
-
-void TTY::set_prompt (const std::string& prompt) {
-	this->prompt = prompt;
-	// TODO: check if prompt.length fits in term
 }
 
 bool TTY::ctrl (TTY::Input& input) {
@@ -121,11 +122,11 @@ void TTY::left_right (TTY::Input& input) {
 	switch (input.vkey) {
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
-			cursor.input_shift (-1, prompt.length());
+			cursor.input_shift (-1);
 			break;
 		case VK_RIGHT:
 			input.flags[Input::Flags::IS_RIGHT] = true;
-			cursor.input_shift (1, prompt.length());
+			cursor.input_shift (1);
 			break;
 	}
 #endif

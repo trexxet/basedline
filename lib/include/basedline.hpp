@@ -10,7 +10,8 @@ namespace Basedline {
 class Basedline {
 	TTY tty;
 	std::string linebuf;
-	void pbuf ();
+	void restore_input ();
+	termsize_t promptLine;
 public:
 	void read (std::string_view prompt);
 	void print (const std::string& s);

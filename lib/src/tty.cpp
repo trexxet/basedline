@@ -70,7 +70,7 @@ void Cursor::move (coord_t pos) {
 Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
 	currType = Type::CurOutput;
 	save();
-	pos[Type::CurInput] = pos[Type::CurOutput];
+	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
 termsize_t TTY::TTYCursor::prepare_input (size_t promptLength) {
@@ -134,6 +134,30 @@ void TTY::left_right (TTY::Input& input) {
 
 void TTY::backspace () {
 	std::printf (CSI "0M");
+}
+
+void TTY::clear_lines (termsize_t begin, termsize_t end) {
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO tcsbi = csbi();
+	coord_t scrBufSize = tcsbi.dwSize;
+#endif
+
+	if (begin > end) [[unlikely]] return;
+	if (begin < 0) [[unlikely]] begin = 0;
+	if (end >= scrBufSize.Y) [[unlikely]] end = scrBufSize.Y - 1;
+
+	Cursor::Type typeSave = cursor.type();
+	cursor.set (Cursor::Type::CurClear);
+
+#if defined(_WIN32)
+	coord_t startPos = {0, begin};
+	DWORD charsToWrite = (end - begin + 1) * scrBufSize.X;
+	DWORD written;
+	FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
+	FillConsoleOutputAttribute (hOut, tcsbi.wAttributes, charsToWrite, startPos, &written);
+#endif
+
+	cursor.set (typeSave);
 }
 
 TTY::Input TTY::getc () {

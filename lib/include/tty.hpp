@@ -30,7 +30,7 @@ protected:
 
 class Cursor {
 public:
-	enum Type { CurInput, CurOutput, count };
+	enum Type { CurInput, CurOutput, CurClear, count };
 protected:
 	ConsoleBuffer& tty;
 	Type currType;
@@ -39,6 +39,7 @@ public:
 	const coord_t& inputPos = pos[Type::CurInput];
 	const coord_t& outputPos = pos[Type::CurOutput];
 	void save ();
+	inline Type type () { return currType; }
 	void set (Type type);
 	void move (coord_t pos);
 	Cursor (ConsoleBuffer& tty);
@@ -92,6 +93,8 @@ private:
 
 public:
 	bool set_raw (bool raw);
+
+	void clear_lines (termsize_t begin, termsize_t end);
 
 	Input getc ();
 	void putc (int c, Cursor::Type curType);

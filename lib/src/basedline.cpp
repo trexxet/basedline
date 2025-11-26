@@ -31,6 +31,7 @@ void Basedline::read (std::string_view prompt) {
 }
 
 void Basedline::print (const std::string& s) {
+	//tty.clear_lines (promptLine, tty.cursor.inputPos.Y);
 	tty.puts (s, Cursor::Type::CurOutput);
 }
 

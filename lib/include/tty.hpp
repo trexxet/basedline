@@ -18,7 +18,7 @@ using coord_t = COORD;
 struct ConsoleBuffer {
 #if defined(_WIN32)
 	HANDLE hIn, hOut;
-	DWORD hInModeSave, hOutModeSave;
+	DWORD hOutModeSave;
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
 	bool enable_raw ();

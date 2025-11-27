@@ -21,11 +21,10 @@ CONSOLE_SCREEN_BUFFER_INFO ConsoleBuffer::csbi () {
 bool ConsoleBuffer::enable_raw () {
 	if (raw) return true;
 #if defined(_WIN32)
-	DWORD rawInMode = hInModeSave;
 	DWORD rawOutMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
 		ENABLE_WRAP_AT_EOL_OUTPUT;
-	raw = (SetConsoleMode (hIn, rawInMode) & SetConsoleMode (hOut, rawOutMode));
+	raw = SetConsoleMode (hOut, rawOutMode);
 	return raw;
 #endif
 }
@@ -33,17 +32,15 @@ bool ConsoleBuffer::enable_raw () {
 bool ConsoleBuffer::disable_raw () {
 	if (!raw) return true;
 #if defined(_WIN32)
-	raw = !(SetConsoleMode (hIn, hInModeSave) & SetConsoleMode (hOut, hOutModeSave));
+	raw = !SetConsoleMode (hOut, hOutModeSave);
 	return !raw;
 #endif
 }
 
 ConsoleBuffer::ConsoleBuffer () {
 #if defined(_WIN32)
-	// TODO: is hIn ever needed?
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
-	GetConsoleMode (hIn, &hInModeSave);
 	GetConsoleMode (hOut, &hOutModeSave);
 #endif
 }

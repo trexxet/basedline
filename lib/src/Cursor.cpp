@@ -29,4 +29,28 @@ Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
 	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
+termsize_t TTYCursor::prepare_input (size_t promptLength) {
+	input_move_down();
+	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
+	return promptEnd.Y;
+}
+
+void TTYCursor::input_shift (termsize_t dx) {
+	set (Type::CurInput);
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
+	termsize_t x = csbi.dwCursorPosition.X + dx;
+	if (x < promptEnd.X) return;
+	move ({x, csbi.dwCursorPosition.Y});
+#endif
+}
+
+void TTYCursor::input_move_down () {
+	set (Type::CurInput);
+#if defined(_WIN32)
+	termsize_t inputLineY = tty.csbi().srWindow.Bottom;
+#endif
+	move ({0, inputLineY});
+}
+
 }

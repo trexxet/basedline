@@ -40,14 +40,7 @@ public:
 		static Input make_err () { return {}; }
 	};
 
-	class TTYCursor : public Cursor {
-		coord_t promptEnd;
-	public:
-		termsize_t prepare_input (size_t promptLength);
-		void input_shift (termsize_t dx);
-		void input_move_down ();
-		TTYCursor (ConsoleBuffer& tty) : Cursor (tty), promptEnd {0} { }
-	} cursor;
+	TTYCursor cursor;
 
 private:
 #if defined(_WIN32)

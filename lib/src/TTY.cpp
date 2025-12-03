@@ -9,30 +9,6 @@
 
 namespace Basedline {
 
-termsize_t TTY::TTYCursor::prepare_input (size_t promptLength) {
-	input_move_down();
-	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
-	return promptEnd.Y;
-}
-
-void TTY::TTYCursor::input_shift (termsize_t dx) {
-	set (Type::CurInput);
-#if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO csbi = tty.csbi();
-	termsize_t x = csbi.dwCursorPosition.X + dx;
-	if (x < promptEnd.X) return;
-	move ({x, csbi.dwCursorPosition.Y});
-#endif
-}
-
-void TTY::TTYCursor::input_move_down () {
-	set (Type::CurInput);
-#if defined(_WIN32)
-	termsize_t inputLineY = tty.csbi().srWindow.Bottom;
-#endif
-	move ({0, inputLineY});
-}
-
 bool TTY::set_raw (bool raw) {
 	return raw ? enable_raw() : disable_raw();
 }

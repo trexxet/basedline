@@ -10,7 +10,7 @@
 namespace Basedline {
 
 bool TTY::set_raw (bool raw) {
-	return raw ? enable_raw() : disable_raw();
+	return raw ? con.enable_raw() : con.disable_raw();
 }
 
 bool TTY::ctrl (TTY::Input& input) {
@@ -50,7 +50,7 @@ void TTY::backspace () {
 
 void TTY::clear_lines (termsize_t begin, termsize_t end) {
 #if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO tcsbi = csbi();
+	CONSOLE_SCREEN_BUFFER_INFO tcsbi = con.csbi();
 	coord_t scrBufSize = tcsbi.dwSize;
 #endif
 
@@ -65,8 +65,8 @@ void TTY::clear_lines (termsize_t begin, termsize_t end) {
 	coord_t startPos = {0, begin};
 	DWORD charsToWrite = (end - begin + 1) * scrBufSize.X;
 	DWORD written;
-	FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
-	FillConsoleOutputAttribute (hOut, tcsbi.wAttributes, charsToWrite, startPos, &written);
+	FillConsoleOutputCharacter (con.hOut, ' ', charsToWrite, startPos, &written);
+	FillConsoleOutputAttribute (con.hOut, tcsbi.wAttributes, charsToWrite, startPos, &written);
 #endif
 
 	cursor.set (typeSave);
@@ -126,7 +126,7 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 	std::printf (s.c_str());
 }
 
-TTY::TTY (): ConsoleHandle(), cursor (*this) {
+TTY::TTY (): con(), cursor (con) {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 #endif

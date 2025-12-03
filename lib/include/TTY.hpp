@@ -13,13 +13,14 @@
 
 namespace Basedline {
 
-class VirtualBuffer : public ConsoleHandle {
+class VirtualBuffer {
 	Cursor cursor;
+	ConsoleHandle con;
 public:
-	VirtualBuffer () : ConsoleHandle(), cursor (*this) { }
+	VirtualBuffer () : con(), cursor (con) { }
 };
 
-class TTY : private ConsoleHandle {
+class TTY {
 public:
 	struct Input {
 		enum Flags {
@@ -46,6 +47,7 @@ private:
 #if defined(_WIN32)
 	HANDLE hIn;
 #endif
+	ConsoleHandle con;
 	VirtualBuffer vbuf;
 
 	/// @brief Process Ctrl keypress

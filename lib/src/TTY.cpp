@@ -126,7 +126,7 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 	std::printf (s.c_str());
 }
 
-TTY::TTY (): con(), cursor (con) {
+TTY::TTY (): ConsoleBuffer() {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 #endif

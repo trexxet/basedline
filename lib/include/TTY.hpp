@@ -13,14 +13,19 @@
 
 namespace Basedline {
 
-class VirtualBuffer {
-	Cursor cursor;
+template<Cursor::Class CursorClass>
+struct ConsoleBuffer {
 	ConsoleHandle con;
-public:
-	VirtualBuffer () : con(), cursor (con) { }
+	CursorClass cursor;
+	ConsoleBuffer () : con (), cursor (con) { }
 };
 
-class TTY {
+class VirtualBuffer : public ConsoleBuffer<Cursor::BaseCursor> {
+public:
+	VirtualBuffer () : ConsoleBuffer () { }
+};
+
+class TTY : public ConsoleBuffer<Cursor::TTYCursor> {
 public:
 	struct Input {
 		enum Flags {
@@ -41,13 +46,10 @@ public:
 		static Input make_err () { return {}; }
 	};
 
-	TTYCursor cursor;
-
 private:
 #if defined(_WIN32)
 	HANDLE hIn;
 #endif
-	ConsoleHandle con;
 	VirtualBuffer vbuf;
 
 	/// @brief Process Ctrl keypress

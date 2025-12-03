@@ -39,35 +39,9 @@ bool ConsoleBuffer::disable_raw () {
 
 ConsoleBuffer::ConsoleBuffer () {
 #if defined(_WIN32)
-	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);
 #endif
-}
-
-void Cursor::save () {
-#if defined(_WIN32)
-	pos[currType] = tty.csbi().dwCursorPosition;
-#endif
-}
-
-void Cursor::set (Cursor::Type type) {
-	if (type == currType) return;
-	save();
-	currType = type;
-	move (pos[type]);
-}
-
-void Cursor::move (coord_t pos) {
-#if defined(_WIN32)
-	SetConsoleCursorPosition (tty.hOut, pos);
-#endif
-}
-
-Cursor::Cursor (ConsoleBuffer& tty) : tty (tty) {
-	currType = Type::CurOutput;
-	save();
-	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
 termsize_t TTY::TTYCursor::prepare_input (size_t promptLength) {
@@ -209,6 +183,12 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 		coord_t oldPos = cursor.outputPos;
 	}
 	std::printf (s.c_str());
+}
+
+TTY::TTY (): ConsoleBuffer(), cursor (*this) {
+#if defined(_WIN32)
+	hIn = GetStdHandle (STD_INPUT_HANDLE);
+#endif
 }
 
 }

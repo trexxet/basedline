@@ -13,6 +13,7 @@ target_compile_definitions(basedline PRIVATE
 
 target_sources(basedline PRIVATE
 	src/basedline.cpp
+	src/cursor.cpp
 	src/tty.cpp
 	$<$<CONFIG:Debug>:src/debug.cpp>
 )

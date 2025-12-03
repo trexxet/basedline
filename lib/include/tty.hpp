@@ -8,16 +8,14 @@
 #include <windows.h>
 #endif
 
-namespace Basedline {
+#include "cursor.hpp"
+#include "defs.hpp"
 
-#if defined(_WIN32)
-using termsize_t = SHORT;
-using coord_t = COORD;
-#endif
+namespace Basedline {
 
 struct ConsoleBuffer {
 #if defined(_WIN32)
-	HANDLE hIn, hOut;
+	HANDLE hOut;
 	DWORD hOutModeSave;
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
@@ -26,23 +24,6 @@ struct ConsoleBuffer {
 	ConsoleBuffer ();
 protected:
 	bool raw = false;
-};
-
-class Cursor {
-public:
-	enum Type { CurInput, CurOutput, CurClear, count };
-protected:
-	ConsoleBuffer& tty;
-	Type currType;
-	coord_t pos[Type::count];
-public:
-	const coord_t& inputPos = pos[Type::CurInput];
-	const coord_t& outputPos = pos[Type::CurOutput];
-	void save ();
-	inline Type type () { return currType; }
-	void set (Type type);
-	void move (coord_t pos);
-	Cursor (ConsoleBuffer& tty);
 };
 
 class VirtualBuffer : public ConsoleBuffer {
@@ -82,6 +63,9 @@ public:
 	} cursor;
 
 private:
+#if defined(_WIN32)
+	HANDLE hIn;
+#endif
 	VirtualBuffer vbuf;
 
 	/// @brief Process Ctrl keypress
@@ -100,7 +84,7 @@ public:
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
 
-	TTY () : ConsoleBuffer(), cursor (*this) { }
+	TTY ();
 };
 
 }

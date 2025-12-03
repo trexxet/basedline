@@ -13,19 +13,19 @@
 
 namespace Basedline {
 
-template<Cursor::Class CursorClass>
+template <Console::IOClass ConsoleIOClass, Cursor::IOClass CursorIOClass>
 struct ConsoleBuffer {
-	ConsoleHandle con;
-	CursorClass cursor;
+	ConsoleIOClass con;
+	CursorIOClass cursor;
 	ConsoleBuffer () : con (), cursor (con) { }
 };
 
-class VirtualBuffer : public ConsoleBuffer<Cursor::BaseCursor> {
+class VirtualBuffer : public ConsoleBuffer<Console::OHandle, Cursor::OCursor> {
 public:
 	VirtualBuffer () : ConsoleBuffer () { }
 };
 
-class TTY : public ConsoleBuffer<Cursor::TTYCursor> {
+class TTY : public ConsoleBuffer<Console::IOHandle, Cursor::IOCursor> {
 public:
 	struct Input {
 		enum Flags {
@@ -47,9 +47,6 @@ public:
 	};
 
 private:
-#if defined(_WIN32)
-	HANDLE hIn;
-#endif
 	VirtualBuffer vbuf;
 
 	/// @brief Process Ctrl keypress
@@ -68,7 +65,7 @@ public:
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
 
-	TTY ();
+	TTY () : ConsoleBuffer() { }
 };
 
 }

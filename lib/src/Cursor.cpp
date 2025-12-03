@@ -2,40 +2,40 @@
 
 #include "TTY.hpp"
 
-namespace Basedline {
+namespace Basedline::Cursor {
 
-void Cursor::BaseCursor::save () {
+void BaseCursor::save () {
 #if defined(_WIN32)
 	pos[currType] = con.csbi().dwCursorPosition;
 #endif
 }
 
-void Cursor::BaseCursor::set (Cursor::Type type) {
+void BaseCursor::set (Cursor::Type type) {
 	if (type == currType) return;
 	save();
 	currType = type;
 	move (pos[type]);
 }
 
-void Cursor::BaseCursor::move (coord_t pos) {
+void BaseCursor::move (coord_t pos) {
 #if defined(_WIN32)
 	SetConsoleCursorPosition (con.hOut, pos);
 #endif
 }
 
-Cursor::BaseCursor::BaseCursor (ConsoleHandle& con) : con (con) {
+BaseCursor::BaseCursor (Console::BaseHandle& con) : con (con) {
 	currType = Type::CurOutput;
 	save();
 	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
-termsize_t Cursor::TTYCursor::prepare_input (size_t promptLength) {
+termsize_t IOCursor::prepare_input (size_t promptLength) {
 	input_move_down();
 	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
 	return promptEnd.Y;
 }
 
-void Cursor::TTYCursor::input_shift (termsize_t dx) {
+void IOCursor::input_shift (termsize_t dx) {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = con.csbi();
@@ -45,7 +45,7 @@ void Cursor::TTYCursor::input_shift (termsize_t dx) {
 #endif
 }
 
-void Cursor::TTYCursor::input_move_down () {
+void IOCursor::input_move_down () {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	termsize_t inputLineY = con.csbi().srWindow.Bottom;

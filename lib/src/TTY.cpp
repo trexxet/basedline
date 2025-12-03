@@ -80,7 +80,7 @@ TTY::Input TTY::getc () {
 		DWORD inputCount;
 		bool skip = false;
 
-		if (!ReadConsoleInput(hIn, &inputRec, 1, &inputCount)
+		if (!ReadConsoleInput(con.hIn, &inputRec, 1, &inputCount)
 		    || inputCount != 1
 		    || inputRec.EventType != KEY_EVENT) {
 			return Input::make_err();
@@ -124,12 +124,6 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 		coord_t oldPos = cursor.outputPos;
 	}
 	std::printf (s.c_str());
-}
-
-TTY::TTY (): ConsoleBuffer() {
-#if defined(_WIN32)
-	hIn = GetStdHandle (STD_INPUT_HANDLE);
-#endif
 }
 
 }

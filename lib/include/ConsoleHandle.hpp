@@ -5,9 +5,12 @@
 #include <windows.h>
 #endif
 
-namespace Basedline {
+#include <concepts>
+#include <type_traits>
 
-struct ConsoleHandle {
+namespace Basedline::Console {
+
+struct BaseHandle {
 #if defined(_WIN32)
 	HANDLE hOut;
 	DWORD hOutModeSave;
@@ -15,9 +18,21 @@ struct ConsoleHandle {
 #endif
 	bool enable_raw ();
 	bool disable_raw ();
-	ConsoleHandle ();
+	BaseHandle ();
 protected:
 	bool raw = false;
 };
+
+using OHandle = BaseHandle;
+
+struct IOHandle : BaseHandle {
+#if defined(_WIN32)
+	HANDLE hIn;
+#endif
+	IOHandle();
+};
+
+template<typename T>
+concept IOClass = std::derived_from<T, BaseHandle>;
 
 }

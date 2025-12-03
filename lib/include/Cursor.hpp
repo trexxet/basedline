@@ -4,13 +4,13 @@
 
 namespace Basedline {
 
-class ConsoleBuffer;
+class ConsoleHandle;
 
 class Cursor {
 public:
 	enum Type { CurInput, CurOutput, CurClear, count };
 protected:
-	ConsoleBuffer& tty;
+	ConsoleHandle& con;
 	Type currType;
 	coord_t pos[Type::count];
 public:
@@ -20,7 +20,7 @@ public:
 	inline Type type () { return currType; }
 	void set (Type type);
 	void move (coord_t pos);
-	Cursor (ConsoleBuffer& tty);
+	Cursor (ConsoleHandle& tty);
 };
 
 class TTYCursor : public Cursor {
@@ -29,7 +29,7 @@ public:
 	termsize_t prepare_input (size_t promptLength);
 	void input_shift (termsize_t dx);
 	void input_move_down ();
-	TTYCursor (ConsoleBuffer& tty) : Cursor (tty), promptEnd {0} { }
+	TTYCursor (ConsoleHandle& tty) : Cursor (tty), promptEnd {0} { }
 };
 
 }

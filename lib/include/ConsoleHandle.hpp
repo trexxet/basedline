@@ -7,7 +7,7 @@
 
 namespace Basedline {
 
-struct ConsoleBuffer {
+struct ConsoleHandle {
 #if defined(_WIN32)
 	HANDLE hOut;
 	DWORD hOutModeSave;
@@ -15,7 +15,7 @@ struct ConsoleBuffer {
 #endif
 	bool enable_raw ();
 	bool disable_raw ();
-	ConsoleBuffer ();
+	ConsoleHandle ();
 protected:
 	bool raw = false;
 };

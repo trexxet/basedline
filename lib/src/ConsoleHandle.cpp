@@ -1,16 +1,16 @@
-#include "ConsoleBuffer.hpp"
+#include "ConsoleHandle.hpp"
 
 namespace Basedline {
 
 #if defined(_WIN32)
-CONSOLE_SCREEN_BUFFER_INFO ConsoleBuffer::csbi () {
+CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo (hOut, &csbi);
 	return csbi;
 }
 #endif
 
-bool ConsoleBuffer::enable_raw () {
+bool ConsoleHandle::enable_raw () {
 	if (raw) return true;
 #if defined(_WIN32)
 	DWORD rawOutMode = hOutModeSave |
@@ -21,7 +21,7 @@ bool ConsoleBuffer::enable_raw () {
 #endif
 }
 
-bool ConsoleBuffer::disable_raw () {
+bool ConsoleHandle::disable_raw () {
 	if (!raw) return true;
 #if defined(_WIN32)
 	raw = !SetConsoleMode (hOut, hOutModeSave);
@@ -29,7 +29,7 @@ bool ConsoleBuffer::disable_raw () {
 #endif
 }
 
-ConsoleBuffer::ConsoleBuffer () {
+ConsoleHandle::ConsoleHandle () {
 #if defined(_WIN32)
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);

@@ -7,19 +7,19 @@
 #include <windows.h>
 #endif
 
-#include "ConsoleBuffer.hpp"
+#include "ConsoleHandle.hpp"
 #include "Cursor.hpp"
 #include "Defs.hpp"
 
 namespace Basedline {
 
-class VirtualBuffer : public ConsoleBuffer {
+class VirtualBuffer : public ConsoleHandle {
 	Cursor cursor;
 public:
-	VirtualBuffer () : ConsoleBuffer(), cursor (*this) { }
+	VirtualBuffer () : ConsoleHandle(), cursor (*this) { }
 };
 
-class TTY : private ConsoleBuffer {
+class TTY : private ConsoleHandle {
 public:
 	struct Input {
 		enum Flags {

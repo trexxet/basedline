@@ -8,8 +8,8 @@
 #include <windows.h>
 #endif
 
-#include "cursor.hpp"
-#include "defs.hpp"
+#include "Cursor.hpp"
+#include "Defs.hpp"
 
 namespace Basedline {
 

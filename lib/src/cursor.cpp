@@ -1,6 +1,6 @@
-#include "cursor.hpp"
+#include "Cursor.hpp"
 
-#include "tty.hpp"
+#include "TTY.hpp"
 
 namespace Basedline {
 

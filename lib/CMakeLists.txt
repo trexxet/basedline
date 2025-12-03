@@ -12,9 +12,9 @@ target_compile_definitions(basedline PRIVATE
 )
 
 target_sources(basedline PRIVATE
-	src/basedline.cpp
-	src/cursor.cpp
-	src/tty.cpp
-	$<$<CONFIG:Debug>:src/debug.cpp>
+	src/Basedline.cpp
+	src/Cursor.cpp
+	src/TTY.cpp
+	$<$<CONFIG:Debug>:src/Debug.cpp>
 )
 target_include_directories(basedline PUBLIC include/)

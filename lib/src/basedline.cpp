@@ -1,8 +1,8 @@
-#include "basedline.hpp"
+#include "Basedline.hpp"
 
 #include <cstdio>
 
-#include "debug.hpp"
+#include "Debug.hpp"
 
 namespace Basedline {
 

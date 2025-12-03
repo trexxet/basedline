@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-#include "tty.hpp"
+#include "TTY.hpp"
 
 namespace Basedline {
 

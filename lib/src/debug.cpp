@@ -1,4 +1,4 @@
-#include "debug.hpp"
+#include "Debug.hpp"
 
 #include <cstdio>
 #include <stdexcept>

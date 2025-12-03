@@ -1,10 +1,10 @@
-#include "tty.hpp"
+#include "TTY.hpp"
 // TODO: Posix support
 
 #include <cstdio>
 #include <format>
 
-#include "debug.hpp"
+#include "Debug.hpp"
 
 #define CSI "[\x1b"
 

@@ -22,7 +22,7 @@ struct ConsoleBuffer {
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
 };
 
-class VirtualBuffer : public ConsoleBuffer<Console::OHandle, Cursor::OCursor> {
+class VirtualBuffer : public ConsoleBuffer<Console::VHandle, Cursor::OCursor> {
 public:
 	VirtualBuffer () : ConsoleBuffer () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (VirtualBuffer);

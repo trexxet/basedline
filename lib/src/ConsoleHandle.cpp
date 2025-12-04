@@ -10,7 +10,26 @@ CONSOLE_SCREEN_BUFFER_INFO BaseHandle::csbi () {
 }
 #endif
 
-bool BaseHandle::enable_raw () {
+#if defined(_WIN32)
+void VHandle::sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
+	SetConsoleScreenBufferSize (hOut, csbi.dwSize);
+	SetConsoleTextAttribute (hOut, csbi.wAttributes);
+}
+#endif
+
+VHandle::VHandle () {
+#if defined(_WIN32)
+	hOut = CreateConsoleScreenBuffer (GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+#endif
+}
+
+VHandle::~VHandle () {
+#if defined(_WIN32)
+	CloseHandle (hOut);
+#endif
+}
+
+bool OHandle::enable_raw () {
 	if (raw) return true;
 #if defined(_WIN32)
 	DWORD rawOutMode = hOutModeSave |
@@ -21,7 +40,7 @@ bool BaseHandle::enable_raw () {
 #endif
 }
 
-bool BaseHandle::disable_raw () {
+bool OHandle::disable_raw () {
 	if (!raw) return true;
 #if defined(_WIN32)
 	raw = !SetConsoleMode (hOut, hOutModeSave);
@@ -29,7 +48,7 @@ bool BaseHandle::disable_raw () {
 #endif
 }
 
-BaseHandle::BaseHandle () {
+OHandle::OHandle () {
 #if defined(_WIN32)
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);

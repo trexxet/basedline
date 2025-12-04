@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 
+#include "Defs.hpp"
 #include "TTY.hpp"
 
 namespace Basedline {
@@ -18,6 +19,7 @@ public:
 
 	Basedline ();
 	~Basedline ();
+	BASEDLINE_CLASS_NO_COPY_MOVE (Basedline);
 };
 
 }

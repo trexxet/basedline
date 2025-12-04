@@ -18,11 +18,14 @@ struct ConsoleBuffer {
 	ConsoleIOClass con;
 	CursorIOClass cursor;
 	ConsoleBuffer () : con (), cursor (con) { }
+
+	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
 };
 
 class VirtualBuffer : public ConsoleBuffer<Console::OHandle, Cursor::OCursor> {
 public:
 	VirtualBuffer () : ConsoleBuffer () { }
+	BASEDLINE_CLASS_NO_COPY_MOVE (VirtualBuffer);
 };
 
 class TTY : public ConsoleBuffer<Console::IOHandle, Cursor::IOCursor> {
@@ -66,6 +69,7 @@ public:
 	void puts (const std::string& s, Cursor::Type curType);
 
 	TTY () : ConsoleBuffer() { }
+	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);
 };
 
 }

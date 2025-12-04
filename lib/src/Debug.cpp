@@ -5,23 +5,30 @@
 
 #define BASEDLINE_DEBUG_FILENAME "bl_debug.txt"
 
-namespace Basedline::Debug {
+namespace Basedline {
+
+FILE* Debug::f = nullptr;
+
 #if defined(BASEDLINE_DEBUG)
 
-FILE* f;
-
-void open () {
+Debug::Debug () {
 	f = fopen (BASEDLINE_DEBUG_FILENAME, "w");
 	if (!f)
 		throw std::runtime_error ("Can't open " BASEDLINE_DEBUG_FILENAME " for write");
 }
 
-void print (const std::string& str) {
-	if (f) std::fprintf(f, str.c_str());
+void Debug::print (const std::string& str) {
+	if (f) {
+		std::fprintf (f, str.c_str());
+		fflush(f);
+	}
 }
 
-void close () {
-	if (f) fclose (f);
+Debug::~Debug () {
+	if (f) {
+		fclose (f);
+		f = nullptr;
+	}
 }
 
 #endif

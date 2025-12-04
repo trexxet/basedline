@@ -3,12 +3,14 @@
 #include <string>
 #include <string_view>
 
+#include "Debug.hpp"
 #include "Defs.hpp"
 #include "TTY.hpp"
 
 namespace Basedline {
 
 class Basedline {
+	Debug dbg;
 	TTY tty;
 	std::string linebuf;
 	void restore_input ();

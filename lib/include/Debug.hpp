@@ -2,14 +2,19 @@
 
 #include <string>
 
-namespace Basedline::Debug {
+namespace Basedline {
+
+struct Debug {
+	static FILE* f;
 #if defined(BASEDLINE_DEBUG)
-void open ();
-void print (const std::string& str);
-void close ();
+	Debug ();
+	static void print (const std::string& str);
+	~Debug ();
 #else
-inline void open () {}
-inline void print (const std::string& str) {}
-inline void close () {}
+	inline Debug () {}
+	inline void print (const std::string& str) {}
+	inline ~Debug () {}
 #endif
+};
+
 }

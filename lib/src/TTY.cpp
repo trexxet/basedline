@@ -126,4 +126,8 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 	std::printf (s.c_str());
 }
 
+TTY::TTY () {
+	vbuf.con.sync_settings (con.csbi());
+}
+
 }

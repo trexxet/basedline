@@ -17,8 +17,8 @@ template <Console::IOClass ConsoleIOClass, Cursor::IOClass CursorIOClass>
 struct ConsoleBuffer {
 	ConsoleIOClass con;
 	CursorIOClass cursor;
-	ConsoleBuffer () : con (), cursor (con) { }
 
+	ConsoleBuffer () : con (), cursor (con) { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
 };
 
@@ -68,7 +68,7 @@ public:
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
 
-	TTY () : ConsoleBuffer() { }
+	TTY ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);
 };
 

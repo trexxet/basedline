@@ -1,8 +1,11 @@
 #include "ConsoleHandle.hpp"
 
 #include <format>
+#include <stdexcept>
 
-#include "Debug.hpp"
+#if defined(BASEDLINE_DEBUG)
+# include "Debug.hpp"
+#endif
 
 namespace Basedline::Console {
 
@@ -16,21 +19,30 @@ CONSOLE_SCREEN_BUFFER_INFO BaseHandle::csbi () {
 
 #if defined(_WIN32)
 void VHandle::sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
-	SetConsoleScreenBufferSize (hOut, csbi.dwSize);
-	SetConsoleTextAttribute (hOut, csbi.wAttributes);
+	if (!SetConsoleScreenBufferSize (hOut, csbi.dwSize) || !SetConsoleTextAttribute (hOut, csbi.wAttributes))
+		throw std::runtime_error (std::format ("Can't sync settings for VHandle hOut {}", hOut));
+# if defined(BASEDLINE_DEBUG)
+	Debug::print (std::format ("VHandle hOut {} sync dwSize.X {} dwSize.Y {}\n", hOut, csbi.dwSize.X, csbi.dwSize.Y));
+# endif
 }
 #endif
 
 VHandle::VHandle () {
 #if defined(_WIN32)
 	hOut = CreateConsoleScreenBuffer (GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	if (hOut == INVALID_HANDLE_VALUE)
+		throw std::runtime_error ("Can't create hOut for VHandle");
+# if defined(BASEDLINE_DEBUG)
 	Debug::print (std::format ("New VHandle hOut {}\n", hOut));
+# endif
 #endif
 }
 
 VHandle::~VHandle () {
 #if defined(_WIN32)
+# if defined(BASEDLINE_DEBUG)
 	Debug::print (std::format ("Closing VHandle hOut {}\n", hOut));
+# endif
 	CloseHandle (hOut);
 #endif
 }
@@ -58,7 +70,9 @@ OHandle::OHandle () {
 #if defined(_WIN32)
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);
+# if defined(BASEDLINE_DEBUG)
 	Debug::print (std::format ("New OHandle hOut {}\n", hOut));
+# endif
 #endif
 }
 

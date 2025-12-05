@@ -13,7 +13,7 @@ FILE* Debug::f = nullptr;
 
 Debug::Debug () {
 	f = fopen (BASEDLINE_DEBUG_FILENAME, "w");
-	if (!f)
+	if (!f) [[unlikely]]
 		throw std::runtime_error ("Can't open " BASEDLINE_DEBUG_FILENAME " for write");
 }
 

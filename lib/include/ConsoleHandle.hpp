@@ -50,7 +50,7 @@ protected:
 
 struct IOHandle : OHandle {
 #if defined(_WIN32)
-	HANDLE hIn;
+	HANDLE hIn = INVALID_HANDLE_VALUE;
 #endif
 
 	IOHandle ();

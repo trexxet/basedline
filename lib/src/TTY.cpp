@@ -1,9 +1,11 @@
 #include "TTY.hpp"
 
 #include <cstdio>
-#include <format>
 
-#include "Debug.hpp"
+#if defined(BASEDLINE_DEBUG)
+# include <format>
+# include "Debug.hpp"
+#endif
 
 #define CSI "[\x1b"
 
@@ -80,12 +82,9 @@ TTY::Input TTY::getc () {
 		DWORD inputCount;
 		bool skip = false;
 
-		if (!ReadConsoleInput(con.hIn, &inputRec, 1, &inputCount)
-		    || inputCount != 1
-		    || inputRec.EventType != KEY_EVENT) {
+		if (!ReadConsoleInput (con.hIn, &inputRec, 1, &inputCount) || inputCount != 1)
 			return Input::make_err();
-		}
-		if (!inputRec.Event.KeyEvent.bKeyDown)
+		if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
 			continue;
 		
 		input.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
@@ -102,11 +101,13 @@ TTY::Input TTY::getc () {
 		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
 			left_right (input);
 
+# if defined(BASEDLINE_DEBUG)
 		Debug::print (std::format
 			("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 			 input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 			 mods, input.vkey, input.ch, 
 			 std::isprint(input.ch) ? input.ch : ' '));
+# endif
 
 		return input;
 	}
@@ -120,9 +121,6 @@ void TTY::putc (int c, Cursor::Type curType) {
 
 void TTY::puts (const std::string& s, Cursor::Type curType) {
 	cursor.set (curType);
-	if (curType == Cursor::Type::CurOutput) {
-		coord_t oldPos = cursor.outputPos;
-	}
 	con.puts (s);
 }
 

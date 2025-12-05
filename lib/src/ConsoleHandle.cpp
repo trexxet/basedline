@@ -7,7 +7,27 @@
 # include "Debug.hpp"
 #endif
 
+#include <cstdio>
+
 namespace Basedline::Console {
+
+void BaseHandle::putc (int c) {
+#if defined(_WIN32)
+	if (c == EOF) return;
+	char ch = (char) c; 
+	WriteConsole (hOut, &ch, 1, NULL, NULL);
+#else
+	std::fputc (c, stdout);
+#endif
+}
+
+void BaseHandle::puts (const std::string& s) {
+#if defined(_WIN32)
+	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
+#else
+	std::printf (s.c_str());
+#endif
+}
 
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO BaseHandle::csbi () {

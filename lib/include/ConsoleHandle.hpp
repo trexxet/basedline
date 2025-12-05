@@ -6,6 +6,7 @@
 #endif
 
 #include <concepts>
+#include <string>
 #include <type_traits>
 
 #include "Defs.hpp"
@@ -17,6 +18,9 @@ struct BaseHandle {
 	HANDLE hOut = INVALID_HANDLE_VALUE;
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
+	void putc (int c);
+	void puts (const std::string& s);
+
 	BaseHandle () = default;
 	BASEDLINE_CLASS_NO_COPY_MOVE (BaseHandle);
 };

@@ -115,7 +115,7 @@ TTY::Input TTY::getc () {
 
 void TTY::putc (int c, Cursor::Type curType) {
 	cursor.set (curType);
-	std::fputc (c, stdout);
+	con.putc (c);
 }
 
 void TTY::puts (const std::string& s, Cursor::Type curType) {
@@ -123,7 +123,7 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 	if (curType == Cursor::Type::CurOutput) {
 		coord_t oldPos = cursor.outputPos;
 	}
-	std::printf (s.c_str());
+	con.puts (s);
 }
 
 TTY::TTY () {

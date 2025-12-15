@@ -38,53 +38,6 @@ CONSOLE_SCREEN_BUFFER_INFO BaseHandle::csbi () {
 }
 #endif
 
-#if defined(_WIN32)
-void VHandle::sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
-	CONSOLE_SCREEN_BUFFER_INFO curr_csbi = this->csbi();
-
-	// 1) dwSize can't be less than srWindow, so if window is shrinked, should
-	// set srWindow to 0 first
-	bool shrink = (csbi.dwSize.X < (curr_csbi.srWindow.Right - curr_csbi.srWindow.Left + 1))
-	           || (csbi.dwSize.Y < (curr_csbi.srWindow.Bottom - curr_csbi.srWindow.Top + 1));
-	if (shrink) {
-		SMALL_RECT shrinkWindow {0, 0, 0, 0};
-		if (!SetConsoleWindowInfo (hOut, TRUE, &shrinkWindow))
-			throw std::runtime_error (std::format ("Can't shrink window for VHandle hOut {}", hOut));
-		Debug::print (std::format ("VHandle hOut {} shrinked window\n", hOut));
-	}
-
-	// 2) srWindow can't be bigger than dwSize, so resize dwSize first
-	if (!SetConsoleScreenBufferSize (hOut, csbi.dwSize)
-	 || !SetConsoleWindowInfo (hOut, TRUE, &csbi.srWindow)
-	 || !SetConsoleTextAttribute (hOut, csbi.wAttributes)) [[unlikely]]
-		throw std::runtime_error (std::format ("Can't sync settings for VHandle hOut {}", hOut));
-
-# if defined(BASEDLINE_DEBUG)
-	Debug::print (std::format ("VHandle hOut {} sync dwSize.X {} dwSize.Y {}\n", hOut, csbi.dwSize.X, csbi.dwSize.Y));
-# endif
-}
-#endif
-
-VHandle::VHandle () {
-#if defined(_WIN32)
-	hOut = CreateConsoleScreenBuffer (GENERIC_WRITE | GENERIC_READ, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	if (hOut == INVALID_HANDLE_VALUE) [[unlikely]]
-		throw std::runtime_error ("Can't create hOut for VHandle");
-# if defined(BASEDLINE_DEBUG)
-	Debug::print (std::format ("New VHandle hOut {}\n", hOut));
-# endif
-#endif
-}
-
-VHandle::~VHandle () {
-#if defined(_WIN32)
-# if defined(BASEDLINE_DEBUG)
-	Debug::print (std::format ("Closing VHandle hOut {}\n", hOut));
-# endif
-	CloseHandle (hOut);
-#endif
-}
-
 bool OHandle::enable_raw () {
 	if (raw) return true;
 #if defined(_WIN32)

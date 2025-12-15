@@ -25,16 +25,6 @@ struct BaseHandle {
 	BASEDLINE_CLASS_NO_COPY_MOVE (BaseHandle);
 };
 
-struct VHandle : BaseHandle {
-#if defined(_WIN32)
-	void sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi);
-#endif
-
-	VHandle ();
-	~VHandle ();
-	BASEDLINE_CLASS_NO_COPY_MOVE (VHandle);
-};
-
 struct OHandle : BaseHandle {
 #if defined(_WIN32)
 	DWORD hOutModeSave;

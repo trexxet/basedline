@@ -84,8 +84,6 @@ TTY::Input TTY::getc () {
 
 		if (!ReadConsoleInput (con.hIn, &inputRec, 1, &inputCount) || inputCount != 1)
 			return Input::make_err();
-		if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
-			vbuf.con.sync_settings (con.csbi());
 		if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
 			continue;
 		
@@ -124,10 +122,6 @@ void TTY::putc (int c, Cursor::Type curType) {
 void TTY::puts (const std::string& s, Cursor::Type curType) {
 	cursor.set (curType);
 	con.puts (s);
-}
-
-TTY::TTY () {
-	vbuf.con.sync_settings (con.csbi());
 }
 
 }

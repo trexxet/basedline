@@ -22,12 +22,6 @@ struct ConsoleBuffer {
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
 };
 
-class VirtualBuffer : public ConsoleBuffer<Console::VHandle, Cursor::OCursor> {
-public:
-	VirtualBuffer () : ConsoleBuffer () { }
-	BASEDLINE_CLASS_NO_COPY_MOVE (VirtualBuffer);
-};
-
 class TTY : public ConsoleBuffer<Console::IOHandle, Cursor::IOCursor> {
 public:
 	struct Input {
@@ -50,8 +44,6 @@ public:
 	};
 
 private:
-	VirtualBuffer vbuf;
-
 	/// @brief Process Ctrl keypress
 	/// @return True if current keypress should be skipped
 	bool ctrl (Input& input);
@@ -68,7 +60,7 @@ public:
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
 
-	TTY ();
+	TTY () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);
 };
 

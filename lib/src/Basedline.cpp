@@ -1,6 +1,7 @@
 #include "Basedline.hpp"
 
 #include <cstdio>
+#include <format>
 
 #include "Debug.hpp"
 
@@ -31,7 +32,12 @@ void Basedline::read (std::string_view prompt) {
 }
 
 void Basedline::print (const std::string& s) {
-	//tty.clear_lines (promptLine, tty.cursor.inputPos.Y);
+	coord_t printEnd = tty.puts_vbuf (s);
+	Debug::print (std::format("printEnd [{} {}] promptLine {}\n", printEnd.X, printEnd.Y, promptLine));
+	if (printEnd.Y >= promptLine && printEnd.X > 0) {
+		Debug::print ("printEnd intersects input");
+		//tty.clear_lines (promptLine, tty.cursor.inputPos.Y);
+	}
 	tty.puts (s, Cursor::Type::CurOutput);
 }
 

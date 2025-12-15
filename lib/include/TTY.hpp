@@ -49,8 +49,8 @@ public:
 		static Input make_err () { return {}; }
 	};
 
-private:
 	VirtualBuffer vbuf;
+private:
 
 	/// @brief Process Ctrl keypress
 	/// @return True if current keypress should be skipped
@@ -67,6 +67,7 @@ public:
 	Input getc ();
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
+	coord_t puts_vbuf (const std::string& s);
 
 	TTY ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);

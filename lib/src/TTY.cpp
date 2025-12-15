@@ -126,6 +126,17 @@ void TTY::puts (const std::string& s, Cursor::Type curType) {
 	con.puts (s);
 }
 
+coord_t TTY::puts_vbuf (const std::string& s) {
+	Debug::print ("============== puts_vbuf begin\n");
+	Debug::print (std::format("cursor outputPos [{} {}]\n", cursor.outputPos.X, cursor.outputPos.Y));
+	vbuf.cursor.move (cursor.outputPos);
+	vbuf.cursor.save();
+	vbuf.con.puts (s);
+	vbuf.cursor.save();
+	Debug::print ("============== puts_vbuf end\n");
+	return vbuf.cursor.outputPos;
+}
+
 TTY::TTY () {
 	vbuf.con.sync_settings (con.csbi());
 }

@@ -14,6 +14,11 @@ namespace Basedline::Cursor {
 
 void BaseCursor::save () {
 #if defined(_WIN32)
+# if defined(BASEDLINE_DEBUG)
+	coord_t newPos = con.csbi().dwCursorPosition;
+	Debug::print (std::format ("Save hOut {} cursor [{} {}] -> [{} {}]\n",
+		con.hOut, pos[currType].X, pos[currType].Y, newPos.X, newPos.Y));
+# endif
 	pos[currType] = con.csbi().dwCursorPosition;
 #endif
 }
@@ -31,7 +36,11 @@ void BaseCursor::set (Cursor::Type type) {
 
 void BaseCursor::move (coord_t pos) {
 #if defined(_WIN32)
-	SetConsoleCursorPosition (con.hOut, pos);
+	COORD bufsize = con.csbi().dwSize;
+	Debug::print (std::format ("Move hOut {} size [{} {}] cursor [{} {}] -> [{} {}]\n",
+		con.hOut, bufsize.X, bufsize.Y, this->pos[currType].X, this->pos[currType].Y, pos.X, pos.Y));
+	bool ret = SetConsoleCursorPosition (con.hOut, pos);
+	Debug::print (std::format ("Move hOut {} cursor ret {}\n", con.hOut, ret));
 #endif
 }
 

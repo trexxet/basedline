@@ -23,7 +23,8 @@ void BaseHandle::putc (int c) {
 
 void BaseHandle::puts (const std::string& s) {
 #if defined(_WIN32)
-	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
+	if (!WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL)) [[unlikely]]
+		throw std::runtime_error (std::format ("Can't WriteConsole for BaseHandle hOut {}", hOut));
 #else
 	std::printf (s.c_str());
 #endif
@@ -33,12 +34,13 @@ void BaseHandle::puts (const std::string& s) {
 CONSOLE_SCREEN_BUFFER_INFO BaseHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (!GetConsoleScreenBufferInfo (hOut, &csbi)) [[unlikely]]
-		throw std::runtime_error (std::format ("Can't het CSBI for BaseHandle hOut {}", hOut));
+		throw std::runtime_error (std::format ("Can't get CSBI for BaseHandle hOut {}", hOut));
 	return csbi;
 }
 #endif
 
 #if defined(_WIN32)
+// TODO: what if we sync the whole CSBI?
 void VHandle::sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
 	CONSOLE_SCREEN_BUFFER_INFO curr_csbi = this->csbi();
 
@@ -60,7 +62,7 @@ void VHandle::sync_settings (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
 		throw std::runtime_error (std::format ("Can't sync settings for VHandle hOut {}", hOut));
 
 # if defined(BASEDLINE_DEBUG)
-	Debug::print (std::format ("VHandle hOut {} sync dwSize.X {} dwSize.Y {}\n", hOut, csbi.dwSize.X, csbi.dwSize.Y));
+	Debug::print (std::format ("VHandle hOut {} sync dwSize [{} {}]\n", hOut, csbi.dwSize.X, csbi.dwSize.Y));
 # endif
 }
 #endif
@@ -107,7 +109,8 @@ bool OHandle::disable_raw () {
 OHandle::OHandle () {
 #if defined(_WIN32)
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
-	GetConsoleMode (hOut, &hOutModeSave);
+	if (!GetConsoleMode (hOut, &hOutModeSave)) [[unlikely]]
+		throw std::runtime_error (std::format ("Can't GetConsoleMode for OHandle hOut {}", hOut));
 # if defined(BASEDLINE_DEBUG)
 	Debug::print (std::format ("New OHandle hOut {}\n", hOut));
 # endif

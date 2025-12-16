@@ -8,14 +8,12 @@ namespace Basedline {
 
 /// @brief Print line buffer
 void Basedline::restore_input () {
-	tty.puts (linebuf, Cursor::Type::CurInput);
+	if (readState)
+		tty.puts (readState->linebuf, Cursor::Type::CurInput);
 }
 
-void Basedline::read (std::string_view prompt) {
-	promptLine = tty.cursor.prepare_input (prompt.length());
-	linebuf = std::string (prompt);
-	restore_input();
-
+void Basedline::read_input () {
+	if (!readState) return;
 	TTY::Input input;
 	int c;
 	while (true) {
@@ -23,15 +21,25 @@ void Basedline::read (std::string_view prompt) {
 		if (!input.ok() || input.is_eof()) break;
 		c = input.c();
 		if (std::isprint (c)) {
-			linebuf += c;
+			readState->linebuf += c;
 			tty.putc (c, Cursor::Type::CurInput);
 		};
 	}
-	linebuf.clear();
+}
+
+void Basedline::read (const std::string& prompt) {
+	if (readState) return;
+
+	readState = std::make_unique<ReadState> (prompt, prompt, tty.cursor.prepare_input (prompt.length()));
+	restore_input();
+
+	read_input();
+	readState.reset();
 }
 
 void Basedline::print (const std::string& s) {
-	//tty.clear_lines (promptLine, tty.cursor.inputPos.Y);
+	if (readState)
+		tty.clear_lines (readState->promptLine, tty.cursor.inputPos.Y);
 	tty.puts (s, Cursor::Type::CurOutput);
 }
 

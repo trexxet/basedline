@@ -1,7 +1,7 @@
 #pragma once
 
+#include <memory>
 #include <string>
-#include <string_view>
 
 #include "Debug.hpp"
 #include "Defs.hpp"
@@ -9,14 +9,21 @@
 
 namespace Basedline {
 
+struct ReadState {
+	std::string prompt, linebuf;
+	termsize_t promptLine;
+};
+
 class Basedline {
 	Debug dbg;
 	TTY tty;
-	std::string linebuf;
 	void restore_input ();
-	termsize_t promptLine;
+
+	std::unique_ptr<ReadState> readState;
+
+	void read_input ();
 public:
-	void read (std::string_view prompt);
+	void read (const std::string& prompt);
 	void print (const std::string& s);
 
 	Basedline ();

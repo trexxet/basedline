@@ -30,7 +30,7 @@ void Basedline::read_input () {
 void Basedline::read (const std::string& prompt) {
 	if (readState) return;
 
-	readState = std::make_unique<ReadState> (prompt, prompt, tty.cursor.prepare_input (prompt.length()));
+	readState.emplace (prompt, prompt, tty.cursor.prepare_input (prompt.length()));
 	restore_input();
 
 	read_input();

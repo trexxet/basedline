@@ -106,7 +106,7 @@ TTY::Input TTY::getc () {
 			("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 			 input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 			 mods, input.vkey, input.ch, 
-			 std::isprint(input.ch) ? input.ch : ' '));
+			 std::isprint (input.ch) ? input.ch : ' '));
 # endif
 
 		return input;

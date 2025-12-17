@@ -1,25 +1,21 @@
 #pragma once
 
-#include <memory>
+#include <optional>
 #include <string>
 
 #include "Debug.hpp"
 #include "Defs.hpp"
+#include "ReadState.hpp"
 #include "TTY.hpp"
 
 namespace Basedline {
-
-struct ReadState {
-	std::string prompt, linebuf;
-	termsize_t promptLine;
-};
 
 class Basedline {
 	Debug dbg;
 	TTY tty;
 	void restore_input ();
 
-	std::unique_ptr<ReadState> readState;
+	std::optional<ReadState> readState;
 
 	void read_input ();
 public:

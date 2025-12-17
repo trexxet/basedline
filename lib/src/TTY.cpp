@@ -2,10 +2,7 @@
 
 #include <cstdio>
 
-#if defined(BASEDLINE_DEBUG)
-# include <format>
-# include "Debug.hpp"
-#endif
+#include "Debug.hpp"
 
 #define CSI "[\x1b"
 
@@ -101,13 +98,10 @@ TTY::Input TTY::getc () {
 		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
 			left_right (input);
 
-# if defined(BASEDLINE_DEBUG)
-		Debug::print (std::format
-			("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
-			 input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
-			 mods, input.vkey, input.ch, 
-			 std::isprint (input.ch) ? input.ch : ' '));
-# endif
+		BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
+		          input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
+		          mods, input.vkey, input.ch, 
+		          std::isprint (input.ch) ? input.ch : ' ');
 
 		return input;
 	}

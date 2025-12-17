@@ -2,11 +2,18 @@
 
 #include <string>
 
+#if defined(BASEDLINE_DEBUG)
+#include <format>
+# define BL_DEBUG(...) Debug::print (std::format (__VA_ARGS__))
+#else
+# define BL_DEBUG(...)
+#endif
+
 namespace Basedline {
 
 struct Debug {
-	static FILE* f;
 #if defined(BASEDLINE_DEBUG)
+	static FILE* f;
 	Debug ();
 	static void print (const std::string& str);
 	~Debug ();

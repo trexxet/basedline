@@ -1,3 +1,4 @@
+#if defined(BASEDLINE_DEBUG)
 #include "Debug.hpp"
 
 #include <cstdio>
@@ -8,8 +9,6 @@
 namespace Basedline {
 
 FILE* Debug::f = nullptr;
-
-#if defined(BASEDLINE_DEBUG)
 
 Debug::Debug () {
 	f = fopen (BASEDLINE_DEBUG_FILENAME, "w");
@@ -31,5 +30,5 @@ Debug::~Debug () {
 	}
 }
 
-#endif
 }
+#endif

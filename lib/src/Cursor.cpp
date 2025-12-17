@@ -1,10 +1,9 @@
 #include "Cursor.hpp"
 
+#include "Debug.hpp"
 #include "TTY.hpp"
 
 #if defined(BASEDLINE_DEBUG)
-# include <format>
-# include "Debug.hpp"
 static const char *cursorTypeName[] = {
 	"CurInput", "CurOutput", "CurClear"
 };
@@ -21,9 +20,9 @@ void BaseCursor::save () {
 void BaseCursor::set (Cursor::Type type) {
 	if (type == currType) return;
 	save();
-#if defined(BASEDLINE_DEBUG) && defined(_WIN32)
-	Debug::print (std::format ("Switch hOut {} cursor type {} -> {}\n",
-		con.hOut, cursorTypeName[currType], cursorTypeName[type]));
+#if defined(_WIN32)
+	BL_DEBUG ("Switch hOut {} cursor type {} -> {}\n", con.hOut,
+	          cursorTypeName[currType], cursorTypeName[type]);
 #endif
 	currType = type;
 	move (pos[type]);

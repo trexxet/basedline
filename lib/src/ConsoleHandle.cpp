@@ -1,13 +1,10 @@
 #include "ConsoleHandle.hpp"
 
+#include <cstdio>
 #include <format>
 #include <stdexcept>
 
-#if defined(BASEDLINE_DEBUG)
-# include "Debug.hpp"
-#endif
-
-#include <cstdio>
+#include "Debug.hpp"
 
 namespace Basedline::Console {
 
@@ -61,16 +58,14 @@ OHandle::OHandle () {
 #if defined(_WIN32)
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);
-# if defined(BASEDLINE_DEBUG)
-	Debug::print (std::format ("New OHandle hOut {}\n", hOut));
-# endif
+	BL_DEBUG ("New OHandle hOut {}\n", hOut);
 #endif
 }
 
 IOHandle::IOHandle () {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
-	Debug::print (std::format ("New IOHandle hOut {} hIn {}\n", hOut, hIn));
+	BL_DEBUG ("New IOHandle hOut {} hIn {}\n", hOut, hIn);
 #endif
 }
 

@@ -1,5 +1,7 @@
 add_library(basedline STATIC)
 
+include(cmake/getBasedlib.cmake)
+
 target_link_options(basedline PRIVATE
 	-Wl,--export-all-symbols
 )
@@ -19,3 +21,4 @@ target_sources(basedline PRIVATE
 	$<$<CONFIG:Debug>:src/Debug.cpp>
 )
 target_include_directories(basedline PUBLIC include/)
+target_link_libraries(basedline PUBLIC basedlib)

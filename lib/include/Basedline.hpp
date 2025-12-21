@@ -3,7 +3,6 @@
 #include <optional>
 #include <string>
 
-#include "Debug.hpp"
 #include "Defs.hpp"
 #include "ReadState.hpp"
 #include "TTY.hpp"
@@ -11,7 +10,6 @@
 namespace Basedline {
 
 class Basedline {
-	Debug dbg;
 	TTY tty;
 	void restore_input ();
 

@@ -18,7 +18,6 @@ target_sources(basedline PRIVATE
 	src/ConsoleHandle.cpp
 	src/Cursor.cpp
 	src/TTY.cpp
-	$<$<CONFIG:Debug>:src/Debug.cpp>
 )
 target_include_directories(basedline PUBLIC include/)
 target_link_libraries(basedline PUBLIC basedlib)

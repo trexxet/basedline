@@ -2,8 +2,6 @@
 
 #include <cstdio>
 
-#include "Debug.hpp"
-
 namespace Basedline {
 
 /// @brief Print line buffer

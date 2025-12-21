@@ -1,27 +1,25 @@
 #pragma once
 
-#include <string>
-
-#if defined(BASEDLINE_DEBUG)
-#include <format>
-# define BL_DEBUG(...) Debug::print (std::format (__VA_ARGS__))
-#else
-# define BL_DEBUG(...)
-#endif
+#include "Basedlib/FileDebug.hpp"
 
 namespace Basedline {
 
-struct Debug {
-#if defined(BASEDLINE_DEBUG)
-	static FILE* f;
-	Debug ();
-	static void print (const std::string& str);
-	~Debug ();
-#else
-	inline Debug () {}
-	inline void print (const std::string& str) {}
-	inline ~Debug () {}
-#endif
-};
+inline Basedlib::FileDebug& fdbg_inst() {
+	static Basedlib::FileDebug dbg (
+		#if defined(BASEDLINE_DEBUG)
+			"bl_debug.txt"
+		#else
+			nullptr
+		#endif
+	);
+	return dbg;
+}
 
 }
+
+#if defined(BASEDLINE_DEBUG)
+# include <format>
+# define BL_DEBUG(...) Basedline::fdbg_inst().print (std::format (__VA_ARGS__))
+#else  // BASEDLINE_DEBUG
+# define BL_DEBUG(...)
+#endif // BASEDLINE_DEBUG

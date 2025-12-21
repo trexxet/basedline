@@ -19,7 +19,7 @@ inline Basedlib::FileDebug& fdbg_inst() {
 
 #if defined(BASEDLINE_DEBUG)
 # include <format>
-# define BL_DEBUG(...) Basedline::fdbg_inst().print (std::format (__VA_ARGS__))
+# define BL_DEBUG(...) Basedline::fdbg_inst().print (std::format (__VA_ARGS__).c_str())
 #else  // BASEDLINE_DEBUG
 # define BL_DEBUG(...)
 #endif // BASEDLINE_DEBUG

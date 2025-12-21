@@ -20,4 +20,5 @@ target_sources(basedline PRIVATE
 	src/TTY.cpp
 )
 target_include_directories(basedline PUBLIC include/)
+target_include_directories(basedline PRIVATE include_internal/)
 target_link_libraries(basedline PUBLIC basedlib)

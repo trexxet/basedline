@@ -2,6 +2,9 @@
 
 #include <cstdio>
 
+#define BL_MAX_PRINT_LIMIT 64
+#define BL_MAX_READ_LIMIT 256
+
 namespace Basedline {
 
 /// @brief Print line buffer
@@ -35,10 +38,27 @@ void Basedline::read (const std::string& prompt) {
 	readState.reset();
 }
 
-void Basedline::print (const std::string& s) {
-	if (readState)
+void Basedline::do_print () {
+	if (readState) // TODO: inputPos.Y may be not in the last input line!
 		tty.clear_lines (readState->promptLine, tty.cursor.inputPos.Y);
-	tty.puts (s, Cursor::Type::CurOutput);
+	size_t printed = 0;
+	do {
+		tty.puts (printQueue.pop().value(), Cursor::Type::CurOutput);
+		printed++;
+	}
+	while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
+	//if (readState)
+	//	tty.restore_lines();
+}
+
+void Basedline::print (std::string s) {
+	printQueue.push (std::move (s));
+}
+
+std::optional<std::string> Basedline::loop () {
+	if (!printQueue.empty())
+		do_print();
+	return std::nullopt;
 }
 
 Basedline::Basedline () {

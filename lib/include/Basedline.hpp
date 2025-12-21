@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 
+#include "Basedlib/ThreadSafeQueue.hpp"
 #include "Defs.hpp"
 #include "ReadState.hpp"
 #include "TTY.hpp"
@@ -14,11 +15,14 @@ class Basedline {
 	void restore_input ();
 
 	std::optional<ReadState> readState;
+	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
 	void read_input ();
+	void do_print ();
 public:
 	void read (const std::string& prompt);
-	void print (const std::string& s);
+	void print (std::string s);
+	std::optional<std::string> loop ();
 
 	Basedline ();
 	~Basedline ();

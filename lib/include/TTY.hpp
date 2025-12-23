@@ -26,11 +26,11 @@ class TTY : public ConsoleBuffer<Console::IOHandle, Cursor::IOCursor> {
 public:
 	struct Input {
 		enum Flags {
-			OK, HAS_CTRL, IS_EOF, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, count
+			OK, HAS_CTRL, IS_EOL, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, count
 		};
 		std::bitset<Flags::count> flags;
 		inline bool ok ()       { return flags[Flags::OK]; }
-		inline bool is_eof ()   { return flags[Flags::IS_EOF]; }
+		inline bool is_eol ()   { return flags[Flags::IS_EOL]; }
 		inline bool is_left ()  { return flags[Flags::IS_LEFT]; }
 		inline bool is_right () { return flags[Flags::IS_RIGHT]; }
 		inline bool is_up ()    { return flags[Flags::IS_UP]; }
@@ -56,6 +56,7 @@ public:
 
 	void clear_lines (termsize_t begin, termsize_t end);
 
+	bool has_input ();
 	Input getc ();
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);

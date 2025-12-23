@@ -17,10 +17,13 @@ class Basedline {
 	std::optional<ReadState> readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
-	void read_input ();
+	std::optional<std::string> read_input ();
+	/// @brief 
+	/// @return true if should continue fetching input
+	bool process_input (TTY::Input& input);
 	void do_print ();
 public:
-	void read (const std::string& prompt);
+	bool read (const std::string& prompt);
 	void print (std::string s);
 	std::optional<std::string> loop ();
 

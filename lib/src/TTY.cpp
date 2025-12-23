@@ -18,7 +18,7 @@ bool TTY::ctrl (TTY::Input& input) {
 		// Handle Ctrl-D and Ctrl-Z
 		case 'D':
 		case 'Z':
-			input.flags[Input::Flags::IS_EOF] = true;
+			input.flags[Input::Flags::IS_EOL] = true;
 			break;
 		// No other key
 		case VK_CONTROL: return true;
@@ -69,6 +69,17 @@ void TTY::clear_lines (termsize_t begin, termsize_t end) {
 #endif
 
 	cursor.set (typeSave);
+}
+
+bool TTY::has_input () {
+#if defined(_WIN32)
+	DWORD input_events = 0;
+	if (!GetNumberOfConsoleInputEvents (con.hIn, &input_events))
+		return false;
+	return (input_events > 0);
+#else
+	// select
+#endif
 }
 
 TTY::Input TTY::getc () {

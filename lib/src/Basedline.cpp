@@ -13,29 +13,38 @@ void Basedline::restore_input () {
 		tty.puts (readState->linebuf, Cursor::Type::CurInput);
 }
 
-void Basedline::read_input () {
-	if (!readState) return;
+// TODO: process input in batches
+std::optional<std::string> Basedline::read_input () {
 	TTY::Input input;
-	int c;
-	while (true) {
+	size_t read = 0;
+	while (tty.has_input() && read < BL_MAX_READ_LIMIT) {
 		input = tty.getc();
-		if (!input.ok() || input.is_eof()) break;
-		c = input.c();
-		if (std::isprint (c)) {
-			readState->linebuf += c;
-			tty.putc (c, Cursor::Type::CurInput);
-		};
+		if (!process_input(input))
+			return readState->linebuf;
+		read++;
 	}
+	return std::nullopt;
 }
 
-void Basedline::read (const std::string& prompt) {
-	if (readState) return;
+bool Basedline::process_input (TTY::Input& input) {
+	if (!input.ok()) [[unlikely]] return true; // just ignore input we can't parse now
+	if (input.is_eol()) [[unlikely]] return false;
+	// handle resize
+	// handle autocomplete
+	// handle history
+	// line edit
+	int c = input.c();
+	if (std::isprint (c)) {
+		readState->linebuf += c;
+		tty.putc (c, Cursor::Type::CurInput);
+	};
+	return true;
+}
 
+bool Basedline::read (const std::string& prompt) {
+	if (readState) return false;
 	readState.emplace (prompt, prompt, tty.cursor.prepare_input (prompt.length()));
-	restore_input();
-
-	read_input();
-	readState.reset();
+	return true;
 }
 
 void Basedline::do_print () {
@@ -58,6 +67,12 @@ void Basedline::print (std::string s) {
 std::optional<std::string> Basedline::loop () {
 	if (!printQueue.empty())
 		do_print();
+	if (readState) {
+		std::optional<std::string> inputBuf = read_input();
+		if (inputBuf)
+			readState.reset();
+		return inputBuf;
+	}
 	return std::nullopt;
 }
 

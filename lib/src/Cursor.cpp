@@ -40,8 +40,7 @@ BaseCursor::BaseCursor (Console::BaseHandle& con) : con (con) {
 	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
-termsize_t IOCursor::prepare_input (size_t promptLength) {
-	input_move_down();
+termsize_t IOCursor::set_prompt_limit (size_t promptLength) {
 	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
 	return promptEnd.Y;
 }

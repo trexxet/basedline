@@ -7,10 +7,10 @@
 
 namespace Basedline {
 
-/// @brief Print line buffer
 void Basedline::restore_input () {
-	if (readState)
-		tty.puts (readState->linebuf, Cursor::Type::CurInput);
+	if (!readState) return;
+	tty.cursor.input_move_down();
+	tty.puts (readState->prompt + readState->linebuf, Cursor::Type::CurInput);
 }
 
 // TODO: process input in batches
@@ -20,7 +20,7 @@ std::optional<std::string> Basedline::read_input () {
 	while (tty.has_input() && read < BL_MAX_READ_LIMIT) {
 		input = tty.getc();
 		if (!process_input(input))
-			return readState->linebuf;
+			return std::move (readState->linebuf);
 		read++;
 	}
 	return std::nullopt;
@@ -43,7 +43,8 @@ bool Basedline::process_input (TTY::Input& input) {
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (prompt, prompt, tty.cursor.prepare_input (prompt.length()));
+	readState.emplace (prompt, "", tty.cursor.set_prompt_limit (prompt.length()));
+	restore_input();
 	return true;
 }
 
@@ -56,8 +57,8 @@ void Basedline::do_print () {
 		printed++;
 	}
 	while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
-	//if (readState)
-	//	tty.restore_lines();
+	if (readState)
+		restore_input();
 }
 
 void Basedline::print (std::string s) {

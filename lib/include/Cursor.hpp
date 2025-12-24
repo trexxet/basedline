@@ -37,7 +37,7 @@ class IOCursor : public BaseCursor {
 public:
 	const coord_t& inputPos = pos[Type::CurInput];
 
-	termsize_t prepare_input (size_t promptLength);
+	termsize_t set_prompt_limit (size_t promptLength);
 	void input_shift (termsize_t dx);
 	void input_move_down ();
 

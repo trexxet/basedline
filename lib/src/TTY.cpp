@@ -109,6 +109,10 @@ TTY::Input TTY::getc () {
 		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
 			left_right (input);
 
+		// Enter
+		if (input.vkey == VK_RETURN)
+			input.flags[Input::Flags::IS_EOL] = true;
+
 		BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 		          input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 		          mods, input.vkey, input.ch, 

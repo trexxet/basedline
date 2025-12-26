@@ -14,7 +14,7 @@ void Basedline::restore_input () {
 }
 
 // TODO: process input in batches
-std::optional<std::string> Basedline::read_input () {
+OptString Basedline::read_input () {
 	TTY::Input input;
 	size_t read = 0;
 	while (tty.has_input() && read < BL_MAX_READ_LIMIT) {
@@ -65,11 +65,11 @@ void Basedline::print (std::string s) {
 	printQueue.push (std::move (s));
 }
 
-std::optional<std::string> Basedline::loop () {
+OptString Basedline::loop () {
 	if (!printQueue.empty())
 		do_print();
 	if (readState) {
-		std::optional<std::string> inputBuf = read_input();
+		OptString inputBuf = read_input();
 		if (inputBuf)
 			readState.reset();
 		return inputBuf;

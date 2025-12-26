@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <optional>
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -22,5 +25,7 @@ namespace Basedline {
 using termsize_t = SHORT;
 using coord_t = COORD;
 #endif
+
+using OptString = std::optional<std::string>;
 
 }

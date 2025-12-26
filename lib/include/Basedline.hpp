@@ -17,7 +17,7 @@ class Basedline {
 	std::optional<ReadState> readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
-	std::optional<std::string> read_input ();
+	OptString read_input ();
 	/// @brief 
 	/// @return true if should continue fetching input
 	bool process_input (TTY::Input& input);
@@ -25,7 +25,7 @@ class Basedline {
 public:
 	bool read (const std::string& prompt);
 	void print (std::string s);
-	std::optional<std::string> loop ();
+	OptString loop ();
 
 	Basedline ();
 	~Basedline ();

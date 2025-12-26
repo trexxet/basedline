@@ -12,7 +12,7 @@ bool TTY::set_raw (bool raw) {
 	return raw ? con.enable_raw() : con.disable_raw();
 }
 
-bool TTY::ctrl (TTY::Input& input) {
+void TTY::ctrl (TTY::Input& input) {
 #if defined(_WIN32)
 	switch (input.vkey) {
 		// Handle Ctrl-D and Ctrl-Z
@@ -20,12 +20,9 @@ bool TTY::ctrl (TTY::Input& input) {
 		case 'Z':
 			input.flags[Input::Flags::IS_EOL] = true;
 			break;
-		// No other key
-		case VK_CONTROL: return true;
 		default: break;
 	}
 #endif
-	return false;
 }
 
 void TTY::left_right (TTY::Input& input) {
@@ -85,42 +82,41 @@ bool TTY::has_input () {
 TTY::Input TTY::getc () {
 	Input input;
 #if defined(_WIN32)
-	while (true) {
-		INPUT_RECORD inputRec;
-		DWORD inputCount;
-		bool skip = false;
+	INPUT_RECORD inputRec;
+	DWORD inputCount;
+	bool skip = false;
 
-		if (!ReadConsoleInput (con.hIn, &inputRec, 1, &inputCount) || inputCount != 1)
-			return Input::make_err();
-		if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
-			continue;
-		
-		input.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
-		input.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
-		input.flags[Input::Flags::OK] = true;
+	if (!ReadConsoleInput (con.hIn, &inputRec, 1, &inputCount) || inputCount != 1)
+		return Input::make_err();
+	if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
+		return input;
+	
+	input.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
+	input.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
+	input.flags[Input::Flags::OK] = true;
 
-		// Ctrl
-		DWORD mods = inputRec.Event.KeyEvent.dwControlKeyState;
-		input.flags[Input::Flags::HAS_CTRL] = mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
-		if (input.flags[Input::Flags::HAS_CTRL] && ctrl (input))
-			continue;
-
-		// Arrows
-		if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
-			left_right (input);
-
-		// Enter
-		if (input.vkey == VK_RETURN)
-			input.flags[Input::Flags::IS_EOL] = true;
-
-		BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
-		          input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
-		          mods, input.vkey, input.ch, 
-		          std::isprint (input.ch) ? input.ch : ' ');
-
+	// Ctrl
+	DWORD mods = inputRec.Event.KeyEvent.dwControlKeyState;
+	input.flags[Input::Flags::HAS_CTRL] = mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+	if (input.flags[Input::Flags::HAS_CTRL]) {
+		ctrl (input);
 		return input;
 	}
+
+	// Arrows
+	if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
+		left_right (input);
+
+	// Enter
+	if (input.vkey == VK_RETURN)
+		input.flags[Input::Flags::IS_EOL] = true;
+
+	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
+				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
+				mods, input.vkey, input.ch, 
+				std::isprint (input.ch) ? input.ch : ' ');
 #endif
+	return input;
 }
 
 void TTY::putc (int c, Cursor::Type curType) {

@@ -11,7 +11,7 @@ void test_printer (std::stop_token stop, Basedline::Basedline& bl, int timing, i
 	std::stop_callback cb (stop, [&sem] { sem.release(); });
 	while (!stop.stop_requested()) {
 		bl.print (std::move (std::format("test {}\n", n)));
-		sem.try_acquire_for (std::chrono::seconds (timing));
+		sem.try_acquire_for (std::chrono::milliseconds (timing));
 	}
 }
 
@@ -19,8 +19,9 @@ int main() {
 	Basedline::Basedline bl;
 	Basedline::OptString input;
 
-	std::jthread printingThread1 (test_printer, std::ref(bl), 2, 1);
-	std::jthread printingThread2 (test_printer, std::ref(bl), 3, 2);
+	std::jthread printingThread1 (test_printer, std::ref(bl), 300, 1);
+	std::jthread printingThread2 (test_printer, std::ref(bl), 500, 2);
+	std::jthread printingThread3 (test_printer, std::ref(bl), 700, 3);
 
 	bl.read ("> ");
 	bl.print ("test main\n");

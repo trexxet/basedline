@@ -44,10 +44,7 @@ public:
 	};
 
 private:
-	/// @brief Process Ctrl keypress
-	/// @return True if current keypress should be skipped
-	bool ctrl (Input& input);
-	/// @brief Process left/right arrows
+	void ctrl (Input& input);
 	void left_right (Input& input);
 	void backspace ();
 

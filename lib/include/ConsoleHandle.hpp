@@ -5,49 +5,35 @@
 #include <windows.h>
 #endif
 
-#include <concepts>
 #include <string>
-#include <type_traits>
 
 #include "Defs.hpp"
 
-namespace Basedline::Console {
+namespace Basedline {
 
-struct BaseHandle {
+class ConsoleHandle {
+	friend class Cursor;
+
+public: // TODO: remove public
 #if defined(_WIN32)
+	HANDLE hIn = INVALID_HANDLE_VALUE;
 	HANDLE hOut = INVALID_HANDLE_VALUE;
-	CONSOLE_SCREEN_BUFFER_INFO csbi ();
-#endif
-	void putc (int c);
-	void puts (const std::string& s);
-
-	BaseHandle () = default;
-	BASEDLINE_CLASS_NO_COPY_MOVE (BaseHandle);
-};
-
-struct OHandle : BaseHandle {
-#if defined(_WIN32)
 	DWORD hOutModeSave;
+#endif
+	bool raw = false;
+
+public:
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
 	bool enable_raw ();
 	bool disable_raw ();
 
-	OHandle ();
-	BASEDLINE_CLASS_NO_COPY_MOVE (OHandle);
-protected:
-	bool raw = false;
+	void putc (int c);
+	void puts (const std::string& s);
+
+	ConsoleHandle ();
+	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);
 };
-
-struct IOHandle : OHandle {
-#if defined(_WIN32)
-	HANDLE hIn = INVALID_HANDLE_VALUE;
-#endif
-
-	IOHandle ();
-	BASEDLINE_CLASS_NO_COPY_MOVE (IOHandle);
-};
-
-template<typename T>
-concept IOClass = std::derived_from<T, BaseHandle>;
 
 }

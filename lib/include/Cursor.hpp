@@ -1,24 +1,21 @@
 #pragma once
 
-#include <concepts>
-#include <type_traits>
-
 #include "Defs.hpp"
 
-namespace Basedline::Console {
-	struct BaseHandle;
-}
+namespace Basedline {
 
-namespace Basedline::Cursor {
+class ConsoleHandle;
 
-enum Type { CurInput, CurOutput, CurClear, count };
-
-class BaseCursor {
-protected:
-	Console::BaseHandle& con;
+class Cursor {
+public:
+	enum Type { CurInput, CurOutput, CurClear, count };
+private:
+	ConsoleHandle& con;
 	Type currType;
 	coord_t pos[Type::count];
+	coord_t promptEnd;
 public:
+	const coord_t& inputPos = pos[Type::CurInput];
 	const coord_t& outputPos = pos[Type::CurOutput];
 
 	void save ();
@@ -26,26 +23,12 @@ public:
 	void set (Type type);
 	void move (coord_t pos);
 
-	BaseCursor (Console::BaseHandle& tty);
-	BASEDLINE_CLASS_NO_COPY_MOVE (BaseCursor);
-};
-
-using OCursor = BaseCursor;
-
-class IOCursor : public BaseCursor {
-	coord_t promptEnd;
-public:
-	const coord_t& inputPos = pos[Type::CurInput];
-
 	termsize_t set_prompt_limit (size_t promptLength);
 	void input_shift (termsize_t dx);
 	void input_move_down ();
 
-	IOCursor (Console::BaseHandle& tty) : BaseCursor (tty), promptEnd {0} { }
-	BASEDLINE_CLASS_NO_COPY_MOVE (IOCursor);
+	Cursor (ConsoleHandle& tty);
+	BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 };
-
-template<typename T>
-concept IOClass = std::derived_from<T, BaseCursor>;
 
 }

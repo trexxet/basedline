@@ -13,16 +13,15 @@
 
 namespace Basedline {
 
-template <Console::IOClass ConsoleIOClass, Cursor::IOClass CursorIOClass>
 struct ConsoleBuffer {
-	ConsoleIOClass con;
-	CursorIOClass cursor;
+	ConsoleHandle con;
+	Cursor cursor;
 
 	ConsoleBuffer () : con (), cursor (con) { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
 };
 
-class TTY : public ConsoleBuffer<Console::IOHandle, Cursor::IOCursor> {
+class TTY : public ConsoleBuffer {
 public:
 	struct Input {
 		enum Flags {

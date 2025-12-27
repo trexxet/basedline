@@ -36,6 +36,17 @@ bool ConsoleHandle::disable_raw () {
 #endif
 }
 
+bool ConsoleHandle::has_input () {
+#if defined(_WIN32)
+	DWORD input_events = 0;
+	if (!GetNumberOfConsoleInputEvents (hIn, &input_events))
+		return false;
+	return (input_events > 0);
+#else
+	// select
+#endif
+}
+
 void ConsoleHandle::putc (int c) {
 #if defined(_WIN32)
 	if (c == EOF) return;
@@ -51,6 +62,20 @@ void ConsoleHandle::puts (const std::string& s) {
 	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
 #else
 	std::printf (s.c_str());
+#endif
+}
+
+void ConsoleHandle::clear_lines (termsize_t begin, termsize_t end) {
+#if defined(_WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
+	coord_t scrBufSize = csbi.dwSize;
+	if (end >= scrBufSize.Y) [[unlikely]] end = scrBufSize.Y - 1;
+
+	coord_t startPos = {0, begin};
+	DWORD charsToWrite = (end - begin + 1) * scrBufSize.X;
+	DWORD written;
+	FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
+	FillConsoleOutputAttribute (hOut, csbi.wAttributes, charsToWrite, startPos, &written);
 #endif
 }
 

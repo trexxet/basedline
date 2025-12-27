@@ -45,17 +45,15 @@ public:
 private:
 	void ctrl (Input& input);
 	void left_right (Input& input);
-	void backspace ();
 
 public:
 	bool set_raw (bool raw);
-
-	void clear_lines (termsize_t begin, termsize_t end);
 
 	bool has_input ();
 	Input getc ();
 	void putc (int c, Cursor::Type curType);
 	void puts (const std::string& s, Cursor::Type curType);
+	void clear_lines (termsize_t begin, termsize_t end);
 
 	TTY () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);

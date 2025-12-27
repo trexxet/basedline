@@ -29,8 +29,11 @@ public:
 	bool enable_raw ();
 	bool disable_raw ();
 
+	bool has_input();
+
 	void putc (int c);
 	void puts (const std::string& s);
+	void clear_lines (termsize_t begin, termsize_t end);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

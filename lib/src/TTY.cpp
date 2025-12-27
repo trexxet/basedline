@@ -13,7 +13,6 @@ bool TTY::set_raw (bool raw) {
 }
 
 void TTY::ctrl (TTY::Input& input) {
-#if defined(_WIN32)
 	switch (input.vkey) {
 		// Handle Ctrl-D and Ctrl-Z
 		case 'D':
@@ -22,11 +21,9 @@ void TTY::ctrl (TTY::Input& input) {
 			break;
 		default: break;
 	}
-#endif
 }
 
 void TTY::left_right (TTY::Input& input) {
-#if defined(_WIN32)
 	switch (input.vkey) {
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
@@ -37,46 +34,6 @@ void TTY::left_right (TTY::Input& input) {
 			cursor.input_shift (1);
 			break;
 	}
-#endif
-}
-
-void TTY::backspace () {
-	std::printf (CSI "0M");
-}
-
-void TTY::clear_lines (termsize_t begin, termsize_t end) {
-#if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO tcsbi = con.csbi();
-	coord_t scrBufSize = tcsbi.dwSize;
-#endif
-
-	if (begin > end) [[unlikely]] return;
-	if (begin < 0) [[unlikely]] begin = 0;
-	if (end >= scrBufSize.Y) [[unlikely]] end = scrBufSize.Y - 1;
-
-	Cursor::Type typeSave = cursor.type();
-	cursor.set (Cursor::Type::CurClear);
-
-#if defined(_WIN32)
-	coord_t startPos = {0, begin};
-	DWORD charsToWrite = (end - begin + 1) * scrBufSize.X;
-	DWORD written;
-	FillConsoleOutputCharacter (con.hOut, ' ', charsToWrite, startPos, &written);
-	FillConsoleOutputAttribute (con.hOut, tcsbi.wAttributes, charsToWrite, startPos, &written);
-#endif
-
-	cursor.set (typeSave);
-}
-
-bool TTY::has_input () {
-#if defined(_WIN32)
-	DWORD input_events = 0;
-	if (!GetNumberOfConsoleInputEvents (con.hIn, &input_events))
-		return false;
-	return (input_events > 0);
-#else
-	// select
-#endif
 }
 
 TTY::Input TTY::getc () {
@@ -119,6 +76,10 @@ TTY::Input TTY::getc () {
 	return input;
 }
 
+bool TTY::has_input () {
+	return con.has_input();
+}
+
 void TTY::putc (int c, Cursor::Type curType) {
 	cursor.set (curType);
 	con.putc (c);
@@ -127,6 +88,16 @@ void TTY::putc (int c, Cursor::Type curType) {
 void TTY::puts (const std::string& s, Cursor::Type curType) {
 	cursor.set (curType);
 	con.puts (s);
+}
+
+void TTY::clear_lines (termsize_t begin, termsize_t end) {
+	if (begin > end) [[unlikely]] return;
+	if (begin < 0) [[unlikely]] begin = 0;
+
+	Cursor::Type typeSave = cursor.type();
+	cursor.set (Cursor::Type::CurClear);
+	con.clear_lines (begin, end);
+	cursor.set (typeSave);
 }
 
 }

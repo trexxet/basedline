@@ -47,6 +47,25 @@ bool ConsoleHandle::has_input () {
 #endif
 }
 
+ConsoleHandle::RawInput ConsoleHandle::get_input () {
+	RawInput rawInput;
+#if defined(_WIN32)
+	INPUT_RECORD inputRec;
+	DWORD inputCount;
+
+	if (!ReadConsoleInput (hIn, &inputRec, 1, &inputCount) || inputCount != 1)
+		return rawInput;
+	if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
+		return rawInput;
+
+	rawInput.type = RawInput::Type::Key;
+	rawInput.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
+	rawInput.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
+	rawInput.mods = inputRec.Event.KeyEvent.dwControlKeyState;
+#endif
+	return rawInput;
+}
+
 void ConsoleHandle::putc (int c) {
 #if defined(_WIN32)
 	if (c == EOF) return;

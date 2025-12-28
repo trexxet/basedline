@@ -33,10 +33,9 @@ bool Basedline::process_input (TTY::Input& input) {
 	// handle autocomplete
 	// handle history
 	// line edit
-	int c = input.c();
-	if (std::isprint (c)) {
-		readState->linebuf += c;
-		tty.putc (c, Cursor::Type::CurInput);
+	if (std::isprint (input.c)) {
+		readState->linebuf += input.c;
+		tty.putc (input.c, Cursor::Type::CurInput);
 	};
 	return true;
 }

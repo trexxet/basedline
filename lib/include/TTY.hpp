@@ -3,10 +3,6 @@
 #include <bitset>
 #include <string>
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 #include "ConsoleHandle.hpp"
 #include "Cursor.hpp"
 #include "Defs.hpp"
@@ -34,17 +30,13 @@ public:
 		inline bool is_right () { return flags[Flags::IS_RIGHT]; }
 		inline bool is_up ()    { return flags[Flags::IS_UP]; }
 		inline bool is_down ()  { return flags[Flags::IS_DOWN]; }
-#if defined(_WIN32)
-		CHAR ch;
-		WORD vkey;
-		inline int c ()         { return static_cast<int> (ch); }
-#endif
+		int c;
 		static Input make_err () { return {}; }
 	};
 
 private:
-	void ctrl (Input& input);
-	void left_right (Input& input);
+	void ctrl (Input& input, const ConsoleHandle::RawInput& rawInput);
+	void left_right (Input& input, const ConsoleHandle::RawInput& rawInput);
 
 public:
 	bool set_raw (bool raw);

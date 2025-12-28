@@ -1,6 +1,6 @@
 #include "TTY.hpp"
 
-#include <cstdio>
+#include <cctype>
 
 #include "Debug.hpp"
 
@@ -12,8 +12,8 @@ bool TTY::set_raw (bool raw) {
 	return raw ? con.enable_raw() : con.disable_raw();
 }
 
-void TTY::ctrl (TTY::Input& input) {
-	switch (input.vkey) {
+void TTY::ctrl (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
+	switch (rawInput.vkey) {
 		// Handle Ctrl-D and Ctrl-Z
 		case 'D':
 		case 'Z':
@@ -23,8 +23,8 @@ void TTY::ctrl (TTY::Input& input) {
 	}
 }
 
-void TTY::left_right (TTY::Input& input) {
-	switch (input.vkey) {
+void TTY::left_right (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
+	switch (rawInput.vkey) {
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
 			cursor.input_shift (-1);
@@ -38,40 +38,33 @@ void TTY::left_right (TTY::Input& input) {
 
 TTY::Input TTY::getc () {
 	Input input;
-#if defined(_WIN32)
-	INPUT_RECORD inputRec;
-	DWORD inputCount;
-	bool skip = false;
-
-	if (!ReadConsoleInput (con.hIn, &inputRec, 1, &inputCount) || inputCount != 1)
+	ConsoleHandle::RawInput rawInput = con.get_input();
+	if (rawInput.type == ConsoleHandle::RawInput::Type::Unknown)
 		return Input::make_err();
-	if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
-		return input;
-	
-	input.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
-	input.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
+
+	input.c = static_cast<int> (rawInput.ch);
 	input.flags[Input::Flags::OK] = true;
 
+#if defined(_WIN32)
 	// Ctrl
-	DWORD mods = inputRec.Event.KeyEvent.dwControlKeyState;
-	input.flags[Input::Flags::HAS_CTRL] = mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+	input.flags[Input::Flags::HAS_CTRL] = rawInput.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
 	if (input.flags[Input::Flags::HAS_CTRL]) {
-		ctrl (input);
+		ctrl (input, rawInput);
 		return input;
 	}
 
 	// Arrows
-	if (input.vkey == VK_LEFT || input.vkey == VK_RIGHT)
-		left_right (input);
+	if (rawInput.vkey == VK_LEFT || rawInput.vkey == VK_RIGHT)
+		left_right (input, rawInput);
 
 	// Enter
-	if (input.vkey == VK_RETURN)
+	if (rawInput.vkey == VK_RETURN)
 		input.flags[Input::Flags::IS_EOL] = true;
 
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
-				mods, input.vkey, input.ch, 
-				std::isprint (input.ch) ? input.ch : ' ');
+				rawInput.mods, rawInput.vkey, input.c, 
+				std::isprint (input.c) ? input.c : ' ');
 #endif
 	return input;
 }

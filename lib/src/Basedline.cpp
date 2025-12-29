@@ -1,6 +1,6 @@
 #include "Basedline.hpp"
 
-#include <cstdio>
+#include <cctype>
 
 #define BL_MAX_PRINT_LIMIT 64
 #define BL_MAX_READ_LIMIT 256
@@ -54,8 +54,7 @@ void Basedline::do_print () {
 	do {
 		tty.puts (printQueue.pop().value(), Cursor::Type::CurOutput);
 		printed++;
-	}
-	while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
+	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
 		restore_input();
 }

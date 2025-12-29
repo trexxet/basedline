@@ -4,8 +4,6 @@
 
 #include "Debug.hpp"
 
-#define CSI "[\x1b"
-
 namespace Basedline {
 
 bool TTY::set_raw (bool raw) {
@@ -20,19 +18,6 @@ void TTY::ctrl (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
 			input.flags[Input::Flags::IS_EOL] = true;
 			break;
 		default: break;
-	}
-}
-
-void TTY::left_right (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
-	switch (rawInput.vkey) {
-		case VK_LEFT:
-			input.flags[Input::Flags::IS_LEFT] = true;
-			cursor.input_shift (-1);
-			break;
-		case VK_RIGHT:
-			input.flags[Input::Flags::IS_RIGHT] = true;
-			cursor.input_shift (1);
-			break;
 	}
 }
 
@@ -52,15 +37,22 @@ TTY::Input TTY::getc () {
 		ctrl (input, rawInput);
 		return input;
 	}
-
-	// Arrows
-	if (rawInput.vkey == VK_LEFT || rawInput.vkey == VK_RIGHT)
-		left_right (input, rawInput);
-
-	// Enter
-	if (rawInput.vkey == VK_RETURN)
-		input.flags[Input::Flags::IS_EOL] = true;
-
+	// Arrows, Enter
+	// TODO: unify with ctrl() and move to separate function
+	switch (rawInput.vkey) {
+		case VK_RETURN:
+			input.flags[Input::Flags::IS_EOL] = true;
+			break;
+		case VK_LEFT:
+			input.flags[Input::Flags::IS_LEFT] = true;
+			//cursor.input_shift (-1);
+			break;
+		case VK_RIGHT:
+			input.flags[Input::Flags::IS_RIGHT] = true;
+			//cursor.input_shift (1);
+			break;
+		default: break;
+	}
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 				rawInput.mods, rawInput.vkey, input.c, 

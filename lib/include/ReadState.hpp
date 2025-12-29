@@ -8,7 +8,8 @@ namespace Basedline {
 
 struct ReadState {
 	std::string prompt, linebuf;
-	termsize_t promptLine;
+	termsize_t promptLine, inputHeight;
+	size_t linebufCursor;
 };
 
 }

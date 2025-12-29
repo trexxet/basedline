@@ -35,8 +35,7 @@ public:
 	};
 
 private:
-	void ctrl (Input& input, const ConsoleHandle::RawInput& rawInput);
-	void left_right (Input& input, const ConsoleHandle::RawInput& rawInput);
+	void process_control_key (Input& input, const ConsoleHandle::RawInput& rawInput);
 
 public:
 	bool set_raw (bool raw);

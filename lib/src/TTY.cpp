@@ -10,35 +10,9 @@ bool TTY::set_raw (bool raw) {
 	return raw ? con.enable_raw() : con.disable_raw();
 }
 
-void TTY::ctrl (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
-	switch (rawInput.vkey) {
-		// Handle Ctrl-D and Ctrl-Z
-		case 'D':
-		case 'Z':
-			input.flags[Input::Flags::IS_EOL] = true;
-			break;
-		default: break;
-	}
-}
-
-TTY::Input TTY::getc () {
-	Input input;
-	ConsoleHandle::RawInput rawInput = con.get_input();
-	if (rawInput.type == ConsoleHandle::RawInput::Type::Unknown)
-		return Input::make_err();
-
-	input.c = static_cast<int> (rawInput.ch);
-	input.flags[Input::Flags::OK] = true;
-
+void TTY::process_control_key (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
 #if defined(_WIN32)
-	// Ctrl
 	input.flags[Input::Flags::HAS_CTRL] = rawInput.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
-	if (input.flags[Input::Flags::HAS_CTRL]) {
-		ctrl (input, rawInput);
-		return input;
-	}
-	// Arrows, Enter
-	// TODO: unify with ctrl() and move to separate function
 	switch (rawInput.vkey) {
 		case VK_RETURN:
 			input.flags[Input::Flags::IS_EOL] = true;
@@ -51,13 +25,33 @@ TTY::Input TTY::getc () {
 			input.flags[Input::Flags::IS_RIGHT] = true;
 			//cursor.input_shift (1);
 			break;
+		case 'D':
+		case 'Z':
+			if (input.flags[Input::Flags::HAS_CTRL])
+				input.flags[Input::Flags::IS_EOL] = true;
+			break;
 		default: break;
 	}
+#endif
+}
+
+TTY::Input TTY::getc () {
+	Input input;
+	ConsoleHandle::RawInput rawInput = con.get_input();
+	if (rawInput.type == ConsoleHandle::RawInput::Type::Unknown)
+		return Input::make_err();
+
+	input.c = static_cast<int> (rawInput.ch);
+	input.flags[Input::Flags::OK] = true;
+	process_control_key (input, rawInput);
+
+#if defined(_WIN32)
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 				rawInput.mods, rawInput.vkey, input.c, 
 				std::isprint (input.c) ? input.c : ' ');
 #endif
+
 	return input;
 }
 

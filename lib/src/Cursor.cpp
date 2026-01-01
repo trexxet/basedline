@@ -34,17 +34,12 @@ void Cursor::move (coord_t pos) {
 #endif
 }
 
-termsize_t Cursor::set_prompt_limit (size_t promptLength) {
-	promptEnd = {static_cast<termsize_t>(promptLength), pos[Type::CurInput].Y};
-	return promptEnd.Y;
-}
-
+// TODO: multiline wrap
 void Cursor::input_shift (termsize_t dx) {
 	set (Type::CurInput);
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = con.csbi();
 	termsize_t x = csbi.dwCursorPosition.X + dx;
-	if (x < promptEnd.X) return;
 	move ({x, csbi.dwCursorPosition.Y});
 #endif
 }
@@ -57,7 +52,7 @@ void Cursor::input_move_down () {
 	move ({0, inputLineY});
 }
 
-Cursor::Cursor (ConsoleHandle& con) : con (con), promptEnd {0} {
+Cursor::Cursor (ConsoleHandle& con) : con (con) {
 	currType = Type::CurOutput;
 	save();
 	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];

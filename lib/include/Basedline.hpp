@@ -18,9 +18,10 @@ class Basedline {
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
 	OptString read_input ();
-	/// @brief 
 	/// @return true if should continue fetching input
 	bool process_input (TTY::Input& input);
+	void line_edit(TTY::Input& input);
+
 	void do_print ();
 public:
 	bool read (const std::string& prompt);

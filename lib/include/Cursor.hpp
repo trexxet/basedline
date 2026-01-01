@@ -13,7 +13,6 @@ private:
 	ConsoleHandle& con;
 	Type currType;
 	coord_t pos[Type::count];
-	coord_t promptEnd;
 public:
 	const coord_t& inputPos = pos[Type::CurInput];
 	const coord_t& outputPos = pos[Type::CurOutput];
@@ -23,7 +22,6 @@ public:
 	void set (Type type);
 	void move (coord_t pos);
 
-	termsize_t set_prompt_limit (size_t promptLength);
 	void input_shift (termsize_t dx);
 	void input_move_down ();
 

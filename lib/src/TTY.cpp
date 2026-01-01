@@ -19,11 +19,9 @@ void TTY::process_control_key (TTY::Input& input, const ConsoleHandle::RawInput&
 			break;
 		case VK_LEFT:
 			input.flags[Input::Flags::IS_LEFT] = true;
-			//cursor.input_shift (-1);
 			break;
 		case VK_RIGHT:
 			input.flags[Input::Flags::IS_RIGHT] = true;
-			//cursor.input_shift (1);
 			break;
 		case 'D':
 		case 'Z':

@@ -2,6 +2,8 @@
 
 #include <cctype>
 
+#include "LineEdit.hpp"
+
 #define BL_MAX_PRINT_LIMIT 64
 #define BL_MAX_READ_LIMIT 256
 
@@ -32,17 +34,22 @@ bool Basedline::process_input (TTY::Input& input) {
 	// handle resize
 	// handle autocomplete
 	// handle history
-	// line edit
-	if (std::isprint (input.c)) {
-		readState->linebuf += input.c;
-		tty.putc (input.c, Cursor::Type::CurInput);
-	};
+	if (LineEdit::is_lineedit (input))
+		line_edit (input);
 	return true;
+}
+
+void Basedline::line_edit (TTY::Input& input) {
+	LineEdit::apply (input, readState.value());
+	if (input.is_left ())
+		tty.cursor.input_shift (-1);
+	if (input.is_right ())
+		tty.cursor.input_shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (prompt, "", tty.cursor.set_prompt_limit (prompt.length()));
+	readState.emplace (prompt, tty.cursor.inputPos.Y);
 	restore_input();
 	return true;
 }
@@ -70,6 +77,14 @@ OptString Basedline::loop () {
 		OptString inputBuf = read_input();
 		if (inputBuf)
 			readState.reset();
+		else if (readState->dirty) {
+			// TODO: separate
+			if (readState->linebufCursor == readState->linebuf.length()) {
+				tty.putc (readState->linebuf.back(), Cursor::Type::CurInput);
+				readState->dirty = false;
+			}
+			// TODO: redraw from middle
+		}
 		return inputBuf;
 	}
 	return std::nullopt;

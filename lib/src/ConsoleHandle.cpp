@@ -5,15 +5,13 @@
 #include <stdexcept>
 
 #include "Debug.hpp"
+#include "VT.hpp"
 
 #if defined(_WIN32)
 # define IF_VT if (vt)
 #else
 # define IF_VT if (true)
 #endif
-
-#define ESC "\x1b"
-#define CSI ESC"["
 
 #define TRY_VT 1
 
@@ -27,11 +25,11 @@ coord_t ConsoleHandle::Cursor::pos () {
 
 void ConsoleHandle::Cursor::move (coord_t pos) {
 	IF_VT {
-		std::printf (CSI"%d;%dH", pos.Y + 1, pos.X + 1);
+		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
 #if defined(_WIN32)
-	if (!SetConsoleCursorPosition (con.hOut, pos)) [[unlikely]]
-		throw std::runtime_error (std::format ("Can't move cursor for hOut {} to [{} {}]", con.hOut, pos.X, pos.Y));
+		if (!SetConsoleCursorPosition (con.hOut, pos)) [[unlikely]]
+			throw std::runtime_error (std::format ("Can't move cursor for hOut {} to [{} {}]", con.hOut, pos.X, pos.Y));
 #endif
 	}
 }
@@ -40,13 +38,12 @@ void ConsoleHandle::Cursor::move (coord_t pos) {
 void ConsoleHandle::Cursor::shift (termsize_t dx) {
 	IF_VT {
 		if (dx == 0) return;
-		unsigned short abs_dx = (dx > 0) ? dx : -dx;
-		std::printf (CSI"%d%c", abs_dx, dx > 0 ? 'C' : 'D');
+		std::printf (dx > 0 ? VT_CUF : VT_CUB, dx > 0 ? dx : -dx);
 	} else {
 #if defined(_WIN32)
-	coord_t curr_pos = pos();
-	termsize_t x = curr_pos.X + dx;
-	move ({x, curr_pos.Y});
+		coord_t curr_pos = pos();
+		termsize_t x = curr_pos.X + dx;
+		move ({x, curr_pos.Y});
 #endif
 	}
 }
@@ -140,15 +137,26 @@ void ConsoleHandle::clear_lines (termsize_t begin, termsize_t end) {
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	coord_t scrBufSize = csbi.dwSize;
 	if (end >= scrBufSize.Y) [[unlikely]] end = scrBufSize.Y - 1;
-
-	coord_t startPos = {0, begin};
-	DWORD charsToWrite = (end - begin + 1) * scrBufSize.X;
-	DWORD written;
-	FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
-	FillConsoleOutputAttribute (hOut, csbi.wAttributes, charsToWrite, startPos, &written);
 #endif
+	termsize_t linesToClear = end - begin + 1;
+
+	IF_VT {
+		std::printf (VT_DECSC);
+		std::printf (VT_CUP, begin + 1, 1);
+		std::printf (VT_DL, linesToClear);
+		std::printf (VT_DECSR);
+	} else {
+#if defined(_WIN32)
+		coord_t startPos = {0, begin};
+		DWORD charsToWrite = linesToClear * scrBufSize.X;
+		DWORD written;
+		FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
+		FillConsoleOutputAttribute (hOut, csbi.wAttributes, charsToWrite, startPos, &written);
+#endif
+	}
 }
 
+// TODO: cache window size
 termsize_t ConsoleHandle::bottom_line () {
 #if defined(_WIN32)
 	return csbi().srWindow.Bottom;

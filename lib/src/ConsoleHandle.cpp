@@ -9,8 +9,13 @@
 #if defined(_WIN32)
 # define IF_VT if (vt)
 #else
-# define IF_VT
+# define IF_VT if (true)
 #endif
+
+#define ESC "\x1b"
+#define CSI ESC"["
+
+#define TRY_VT 1
 
 namespace Basedline {
 
@@ -21,19 +26,29 @@ coord_t ConsoleHandle::Cursor::pos () {
 }
 
 void ConsoleHandle::Cursor::move (coord_t pos) {
+	IF_VT {
+		std::printf (CSI"%d;%dH", pos.Y + 1, pos.X + 1);
+	} else {
 #if defined(_WIN32)
 	if (!SetConsoleCursorPosition (con.hOut, pos)) [[unlikely]]
 		throw std::runtime_error (std::format ("Can't move cursor for hOut {} to [{} {}]", con.hOut, pos.X, pos.Y));
 #endif
+	}
 }
 
 // TODO: multiline wrap
-void ConsoleHandle::Cursor::input_shift (termsize_t dx) {
+void ConsoleHandle::Cursor::shift (termsize_t dx) {
+	IF_VT {
+		if (dx == 0) return;
+		unsigned short abs_dx = (dx > 0) ? dx : -dx;
+		std::printf (CSI"%d%c", abs_dx, dx > 0 ? 'C' : 'D');
+	} else {
 #if defined(_WIN32)
 	coord_t curr_pos = pos();
 	termsize_t x = curr_pos.X + dx;
 	move ({x, curr_pos.Y});
 #endif
+	}
 }
 
 #if defined(_WIN32)
@@ -50,13 +65,15 @@ bool ConsoleHandle::configure () {
 #if defined(_WIN32)
 	DWORD outMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
-		ENABLE_WRAP_AT_EOL_OUTPUT |
-		ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	vt = SetConsoleMode (hOut, outMode);
-	BL_DEBUG ("VT mode: {}\n", vt);
-	if (vt)
-		return configured = true;
-	outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		ENABLE_WRAP_AT_EOL_OUTPUT;
+	if (TRY_VT) {
+		outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		vt = SetConsoleMode (hOut, outMode);
+		BL_DEBUG ("VT mode: {}\n", vt);
+		if (vt)
+			return configured = true;
+		outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	}
 	configured = SetConsoleMode (hOut, outMode);
 #endif
 	return configured;

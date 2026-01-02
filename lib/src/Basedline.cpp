@@ -47,9 +47,9 @@ bool Basedline::process_input (TTY::Input& input) {
 void Basedline::line_edit (TTY::Input& input) {
 	LineEdit::apply (input, readState.value());
 	if (input.is_left ())
-		tty.con.cursor.input_shift (-1);
+		tty.con.cursor.shift (-1);
 	if (input.is_right ())
-		tty.con.cursor.input_shift (1);
+		tty.con.cursor.shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {

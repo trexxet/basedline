@@ -25,13 +25,13 @@ public:
 	class Cursor {
 	private:
 		ConsoleHandle& con;
+		bool& vt;
 	public:
 		coord_t pos ();
 		void move (coord_t pos);
+		void shift (termsize_t dx);
 
-		void input_shift (termsize_t dx);
-
-		Cursor (ConsoleHandle& con) : con (con) { }
+		Cursor (ConsoleHandle& con) : con (con), vt (con.vt) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 

@@ -16,7 +16,6 @@ target_compile_definitions(basedline PRIVATE
 set(BASEDLINE_SOURCES
 	Basedline.cpp
 	ConsoleHandle.cpp
-	Cursor.cpp
 	LineEdit.cpp
 	TTY.cpp
 )

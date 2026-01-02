@@ -17,9 +17,24 @@ class ConsoleHandle {
 	HANDLE hIn = INVALID_HANDLE_VALUE;
 	HANDLE hOut = INVALID_HANDLE_VALUE;
 	DWORD hOutModeSave;
+	bool vt = false;
 #endif
-	bool raw = false;
+	bool configured = false;
+
 public:
+	class Cursor {
+	private:
+		ConsoleHandle& con;
+	public:
+		coord_t pos ();
+		void move (coord_t pos);
+
+		void input_shift (termsize_t dx);
+
+		Cursor (ConsoleHandle& con) : con (con) { }
+		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
+	} cursor;
+
 	struct RawInput {
 		enum class Type { Unknown, Key, Resize } type = Type::Unknown;
 #if defined(_WIN32)
@@ -29,11 +44,11 @@ public:
 #endif
 	};
 
-	#if defined(_WIN32)
+#if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
 #endif
-	bool enable_raw ();
-	bool disable_raw ();
+	bool configure ();
+	bool unconfigure ();
 
 	bool has_input();
 	RawInput get_input ();

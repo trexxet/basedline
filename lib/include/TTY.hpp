@@ -4,21 +4,14 @@
 #include <string>
 
 #include "ConsoleHandle.hpp"
-#include "Cursor.hpp"
 #include "Defs.hpp"
 
 namespace Basedline {
 
-struct ConsoleBuffer {
-	ConsoleHandle con;
-	Cursor cursor;
-
-	ConsoleBuffer () : con (), cursor (con) { }
-	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleBuffer);
-};
-
-class TTY : public ConsoleBuffer {
+class TTY {
 public:
+	ConsoleHandle con;
+
 	struct Input {
 		enum Flags {
 			OK, HAS_CTRL, IS_EOL, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, count
@@ -39,8 +32,6 @@ private:
 	void process_control_key (Input& input, const ConsoleHandle::RawInput& rawInput);
 
 public:
-	bool set_raw (bool raw);
-
 	bool has_input ();
 	Input getc ();
 	void putc (int c);
@@ -48,7 +39,7 @@ public:
 	void clear_lines (termsize_t begin, termsize_t end);
 	termsize_t bottom_line ();
 
-	TTY () { }
+	TTY () : con () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);
 };
 

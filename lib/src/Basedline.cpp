@@ -13,9 +13,9 @@ void Basedline::restore_input () {
 	if (!readState) return;
 	readState->inputLine = tty.bottom_line();
 	// TODO: line wrap
-	tty.cursor.move ({0, readState->inputLine});
+	tty.con.cursor.move ({0, readState->inputLine});
 	tty.puts (readState->prompt + readState->linebuf);
-	tty.cursor.move ({
+	tty.con.cursor.move ({
 		static_cast<termsize_t> (readState->prompt.length() + readState->linebufCursor), readState->inputLine
 	});
 }
@@ -47,9 +47,9 @@ bool Basedline::process_input (TTY::Input& input) {
 void Basedline::line_edit (TTY::Input& input) {
 	LineEdit::apply (input, readState.value());
 	if (input.is_left ())
-		tty.cursor.input_shift (-1);
+		tty.con.cursor.input_shift (-1);
 	if (input.is_right ())
-		tty.cursor.input_shift (1);
+		tty.con.cursor.input_shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {
@@ -62,13 +62,13 @@ bool Basedline::read (const std::string& prompt) {
 void Basedline::do_print () {
 	if (readState) // TODO: line wrap
 		tty.clear_lines (readState->inputLine, readState->inputLine + readState->inputHeight);
-	tty.cursor.move (outputPos);
+	tty.con.cursor.move (outputPos);
 	size_t printed = 0;
 	do {
 		tty.puts (printQueue.pop().value());
 		printed++;
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
-	outputPos = tty.cursor.pos();
+	outputPos = tty.con.cursor.pos();
 	if (readState)
 		restore_input();
 }
@@ -98,14 +98,14 @@ OptString Basedline::loop () {
 }
 
 Basedline::Basedline () {
-	if (!tty.set_raw (true))
-		std::fprintf (stderr, "Failed to enable tty raw mode");
-	outputPos = tty.cursor.pos();
+	if (!tty.con.configure())
+		std::fprintf (stderr, "Failed to configure terminal");
+	outputPos = tty.con.cursor.pos();
 }
 
 Basedline::~Basedline () {
-	if (!tty.set_raw (false))
-		std::fprintf (stderr, "Failed to disable tty raw mode");
+	if (!tty.con.unconfigure())
+		std::fprintf (stderr, "Failed to restore terminal configuration");
 }
 
 }

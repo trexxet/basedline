@@ -6,7 +6,35 @@
 
 #include "Debug.hpp"
 
+#if defined(_WIN32)
+# define IF_VT if (vt)
+#else
+# define IF_VT
+#endif
+
 namespace Basedline {
+
+coord_t ConsoleHandle::Cursor::pos () {
+#if defined(_WIN32)
+	return con.csbi().dwCursorPosition;
+#endif
+}
+
+void ConsoleHandle::Cursor::move (coord_t pos) {
+#if defined(_WIN32)
+	if (!SetConsoleCursorPosition (con.hOut, pos)) [[unlikely]]
+		throw std::runtime_error (std::format ("Can't move cursor for hOut {} to [{} {}]", con.hOut, pos.X, pos.Y));
+#endif
+}
+
+// TODO: multiline wrap
+void ConsoleHandle::Cursor::input_shift (termsize_t dx) {
+#if defined(_WIN32)
+	coord_t curr_pos = pos();
+	termsize_t x = curr_pos.X + dx;
+	move ({x, curr_pos.Y});
+#endif
+}
 
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
@@ -17,22 +45,28 @@ CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 }
 #endif
 
-bool ConsoleHandle::enable_raw () {
-	if (raw) return true;
+bool ConsoleHandle::configure () {
+	if (configured) return true;
 #if defined(_WIN32)
-	DWORD rawOutMode = hOutModeSave |
+	DWORD outMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
-		ENABLE_WRAP_AT_EOL_OUTPUT;
-	raw = SetConsoleMode (hOut, rawOutMode);
-	return raw;
+		ENABLE_WRAP_AT_EOL_OUTPUT |
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	vt = SetConsoleMode (hOut, outMode);
+	BL_DEBUG ("VT mode: {}\n", vt);
+	if (vt)
+		return configured = true;
+	outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	configured = SetConsoleMode (hOut, outMode);
 #endif
+	return configured;
 }
 
-bool ConsoleHandle::disable_raw () {
-	if (!raw) return true;
+bool ConsoleHandle::unconfigure () {
+	if (!configured) return true;
 #if defined(_WIN32)
-	raw = !SetConsoleMode (hOut, hOutModeSave);
-	return !raw;
+	configured = !SetConsoleMode (hOut, hOutModeSave);
+	return !configured;
 #endif
 }
 
@@ -104,7 +138,7 @@ termsize_t ConsoleHandle::bottom_line () {
 #endif
 }
 
-ConsoleHandle::ConsoleHandle () {
+ConsoleHandle::ConsoleHandle () : cursor (*this) {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);

@@ -6,10 +6,6 @@
 
 namespace Basedline {
 
-bool TTY::set_raw (bool raw) {
-	return raw ? con.enable_raw() : con.disable_raw();
-}
-
 void TTY::process_control_key (TTY::Input& input, const ConsoleHandle::RawInput& rawInput) {
 #if defined(_WIN32)
 	input.flags[Input::Flags::HAS_CTRL] = rawInput.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);

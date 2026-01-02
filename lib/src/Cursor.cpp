@@ -1,61 +1,32 @@
 #include "Cursor.hpp"
 
-#include "Debug.hpp"
-#include "TTY.hpp"
+#include <format>
+#include <stdexcept>
 
-#if defined(BASEDLINE_DEBUG)
-static const char *cursorTypeName[] = {
-	"CurInput", "CurOutput", "CurClear"
-};
-#endif
+#include "ConsoleHandle.hpp"
 
 namespace Basedline {
 
-void Cursor::save () {
+coord_t Cursor::pos () {
 #if defined(_WIN32)
-	pos[currType] = con.csbi().dwCursorPosition;
+	return con.csbi().dwCursorPosition;
 #endif
-}
-
-void Cursor::set (Type type) {
-	if (type == currType) return;
-	save();
-#if defined(_WIN32)
-	BL_DEBUG ("Switch hOut {} cursor type {} -> {}\n", con.hOut,
-	          cursorTypeName[currType], cursorTypeName[type]);
-#endif
-	currType = type;
-	move (pos[type]);
 }
 
 void Cursor::move (coord_t pos) {
 #if defined(_WIN32)
-	SetConsoleCursorPosition (con.hOut, pos);
+	if (!SetConsoleCursorPosition (con.hOut, pos)) [[unlikely]]
+		throw std::runtime_error (std::format ("Can't move cursor for hOut {} to [{} {}]", con.hOut, pos.X, pos.Y));
 #endif
 }
 
 // TODO: multiline wrap
 void Cursor::input_shift (termsize_t dx) {
-	set (Type::CurInput);
 #if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO csbi = con.csbi();
-	termsize_t x = csbi.dwCursorPosition.X + dx;
-	move ({x, csbi.dwCursorPosition.Y});
+	coord_t curr_pos = pos();
+	termsize_t x = curr_pos.X + dx;
+	move ({x, curr_pos.Y});
 #endif
-}
-
-void Cursor::input_move_down () {
-	set (Type::CurInput);
-#if defined(_WIN32)
-	termsize_t inputLineY = con.csbi().srWindow.Bottom;
-#endif
-	move ({0, inputLineY});
-}
-
-Cursor::Cursor (ConsoleHandle& con) : con (con) {
-	currType = Type::CurOutput;
-	save();
-	pos[Type::CurClear] = pos[Type::CurInput] = pos[Type::CurOutput];
 }
 
 }

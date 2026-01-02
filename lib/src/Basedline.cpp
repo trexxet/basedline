@@ -11,8 +11,13 @@ namespace Basedline {
 
 void Basedline::restore_input () {
 	if (!readState) return;
-	tty.cursor.input_move_down();
-	tty.puts (readState->prompt + readState->linebuf, Cursor::Type::CurInput);
+	readState->inputLine = tty.bottom_line();
+	// TODO: line wrap
+	tty.cursor.move ({0, readState->inputLine});
+	tty.puts (readState->prompt + readState->linebuf);
+	tty.cursor.move ({
+		static_cast<termsize_t> (readState->prompt.length() + readState->linebufCursor), readState->inputLine
+	});
 }
 
 // TODO: process input in batches
@@ -49,19 +54,21 @@ void Basedline::line_edit (TTY::Input& input) {
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (prompt, tty.cursor.inputPos.Y);
+	readState.emplace (prompt, tty.bottom_line());
 	restore_input();
 	return true;
 }
 
 void Basedline::do_print () {
-	if (readState) // TODO: inputPos.Y may be not in the last input line!
-		tty.clear_lines (readState->promptLine, tty.cursor.inputPos.Y);
+	if (readState) // TODO: line wrap
+		tty.clear_lines (readState->inputLine, readState->inputLine + readState->inputHeight);
+	tty.cursor.move (outputPos);
 	size_t printed = 0;
 	do {
-		tty.puts (printQueue.pop().value(), Cursor::Type::CurOutput);
+		tty.puts (printQueue.pop().value());
 		printed++;
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
+	outputPos = tty.cursor.pos();
 	if (readState)
 		restore_input();
 }
@@ -80,7 +87,7 @@ OptString Basedline::loop () {
 		else if (readState->dirty) {
 			// TODO: separate
 			if (readState->linebufCursor == readState->linebuf.length()) {
-				tty.putc (readState->linebuf.back(), Cursor::Type::CurInput);
+				tty.putc (readState->linebuf.back());
 				readState->dirty = false;
 			}
 			// TODO: redraw from middle
@@ -93,6 +100,7 @@ OptString Basedline::loop () {
 Basedline::Basedline () {
 	if (!tty.set_raw (true))
 		std::fprintf (stderr, "Failed to enable tty raw mode");
+	outputPos = tty.cursor.pos();
 }
 
 Basedline::~Basedline () {

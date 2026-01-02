@@ -41,6 +41,7 @@ public:
 	void putc (int c);
 	void puts (const std::string& s);
 	void clear_lines (termsize_t begin, termsize_t end);
+	termsize_t bottom_line ();
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

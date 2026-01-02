@@ -22,6 +22,7 @@ class Basedline {
 	bool process_input (TTY::Input& input);
 	void line_edit(TTY::Input& input);
 
+	coord_t outputPos;
 	void do_print ();
 public:
 	bool read (const std::string& prompt);

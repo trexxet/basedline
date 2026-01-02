@@ -43,9 +43,10 @@ public:
 
 	bool has_input ();
 	Input getc ();
-	void putc (int c, Cursor::Type curType);
-	void puts (const std::string& s, Cursor::Type curType);
+	void putc (int c);
+	void puts (const std::string& s);
 	void clear_lines (termsize_t begin, termsize_t end);
+	termsize_t bottom_line ();
 
 	TTY () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);

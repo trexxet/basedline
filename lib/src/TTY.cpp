@@ -57,24 +57,22 @@ bool TTY::has_input () {
 	return con.has_input();
 }
 
-void TTY::putc (int c, Cursor::Type curType) {
-	cursor.set (curType);
+void TTY::putc (int c) {
 	con.putc (c);
 }
 
-void TTY::puts (const std::string& s, Cursor::Type curType) {
-	cursor.set (curType);
+void TTY::puts (const std::string& s) {
 	con.puts (s);
 }
 
 void TTY::clear_lines (termsize_t begin, termsize_t end) {
 	if (begin > end) [[unlikely]] return;
 	if (begin < 0) [[unlikely]] begin = 0;
-
-	Cursor::Type typeSave = cursor.type();
-	cursor.set (Cursor::Type::CurClear);
 	con.clear_lines (begin, end);
-	cursor.set (typeSave);
+}
+
+termsize_t TTY::bottom_line () {
+	return con.bottom_line();
 }
 
 }

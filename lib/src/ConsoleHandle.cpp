@@ -12,7 +12,7 @@ namespace Basedline {
 CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (!GetConsoleScreenBufferInfo (hOut, &csbi)) [[unlikely]]
-		throw std::runtime_error (std::format ("Can't het CSBI for ConsoleHandle hOut {}", hOut));
+		throw std::runtime_error (std::format ("Can't get CSBI for ConsoleHandle hOut {}", hOut));
 	return csbi;
 }
 #endif
@@ -95,6 +95,12 @@ void ConsoleHandle::clear_lines (termsize_t begin, termsize_t end) {
 	DWORD written;
 	FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);
 	FillConsoleOutputAttribute (hOut, csbi.wAttributes, charsToWrite, startPos, &written);
+#endif
+}
+
+termsize_t ConsoleHandle::bottom_line () {
+#if defined(_WIN32)
+	return csbi().srWindow.Bottom;
 #endif
 }
 

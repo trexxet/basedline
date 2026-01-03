@@ -61,7 +61,7 @@ bool Basedline::read (const std::string& prompt) {
 
 void Basedline::do_print () {
 	if (readState) // TODO: line wrap
-		tty.clear_lines (readState->inputLine, readState->inputLine + readState->inputHeight);
+		tty.clear_lines (readState->inputLine, readState->inputHeight);
 	tty.con.cursor.move (outputPos);
 	size_t printed = 0;
 	do {

@@ -132,22 +132,19 @@ void ConsoleHandle::puts (const std::string& s) {
 #endif
 }
 
-void ConsoleHandle::clear_lines (termsize_t begin, termsize_t end) {
+void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
+	if (linesToClear <= 0) [[unlikely]] return;
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	coord_t scrBufSize = csbi.dwSize;
-	if (end >= scrBufSize.Y) [[unlikely]] end = scrBufSize.Y - 1;
+	if (from + linesToClear > scrBufSize.Y) [[unlikely]] linesToClear = scrBufSize.Y - from;
 #endif
-	termsize_t linesToClear = end - begin + 1;
 
 	IF_VT {
-		std::printf (VT_DECSC);
-		std::printf (VT_CUP, begin + 1, 1);
-		std::printf (VT_DL, linesToClear);
-		std::printf (VT_DECSR);
+		std::printf (VT_DECSC VT_CUP VT_DL VT_DECSR, from + 1, 1, linesToClear);
 	} else {
 #if defined(_WIN32)
-		coord_t startPos = {0, begin};
+		coord_t startPos = {0, from};
 		DWORD charsToWrite = linesToClear * scrBufSize.X;
 		DWORD written;
 		FillConsoleOutputCharacter (hOut, ' ', charsToWrite, startPos, &written);

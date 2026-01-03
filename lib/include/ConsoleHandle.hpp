@@ -55,7 +55,7 @@ public:
 
 	void putc (int c);
 	void puts (const std::string& s);
-	void clear_lines (termsize_t begin, termsize_t end);
+	void clear_lines (termsize_t from, termsize_t linesToClear);
 	termsize_t bottom_line ();
 
 	ConsoleHandle ();

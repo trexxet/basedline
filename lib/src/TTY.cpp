@@ -61,10 +61,10 @@ void TTY::puts (const std::string& s) {
 	con.puts (s);
 }
 
-void TTY::clear_lines (termsize_t begin, termsize_t end) {
-	if (begin > end) [[unlikely]] return;
-	if (begin < 0) [[unlikely]] begin = 0;
-	con.clear_lines (begin, end);
+void TTY::clear_lines (termsize_t from, termsize_t linesToClear) {
+	if (linesToClear <= 0) [[unlikely]] return;
+	if (from < 0) [[unlikely]] from = 0;
+	con.clear_lines (from, linesToClear);
 }
 
 termsize_t TTY::bottom_line () {

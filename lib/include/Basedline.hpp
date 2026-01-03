@@ -12,6 +12,7 @@ namespace Basedline {
 
 class Basedline {
 	TTY tty;
+	void print_input ();
 	void restore_input ();
 
 	std::optional<ReadState> readState;

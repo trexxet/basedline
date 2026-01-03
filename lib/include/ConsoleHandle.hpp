@@ -30,6 +30,7 @@ public:
 		coord_t pos ();
 		void move (coord_t pos);
 		void shift (termsize_t dx);
+		void new_input_line (termsize_t *line);
 
 		Cursor (ConsoleHandle& con) : con (con), vt (con.vt) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
@@ -57,6 +58,8 @@ public:
 	void puts (const std::string& s);
 	void clear_lines (termsize_t from, termsize_t linesToClear);
 	termsize_t bottom_line ();
+
+	bool is_last_column (termsize_t x);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

@@ -48,6 +48,13 @@ void ConsoleHandle::Cursor::shift (termsize_t dx) {
 	}
 }
 
+// TODO: if posix/conpty, not if vt
+void ConsoleHandle::Cursor::new_input_line (termsize_t *line) {
+	IF_VT std::printf ("\n");
+	else if (line) [[likely]] (*line)++;
+}
+
+// TODO: cache csbi
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -71,6 +78,7 @@ bool ConsoleHandle::configure () {
 			return configured = true;
 		outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	}
+	BL_DEBUG ("VT mode: {}\n", vt);
 	configured = SetConsoleMode (hOut, outMode);
 #endif
 	return configured;
@@ -115,21 +123,25 @@ ConsoleHandle::RawInput ConsoleHandle::get_input () {
 }
 
 void ConsoleHandle::putc (int c) {
+	IF_VT {
+		std::fputc (c, stdout);
+	} else {
 #if defined(_WIN32)
-	if (c == EOF) return;
-	char ch = (char) c; 
-	WriteConsole (hOut, &ch, 1, NULL, NULL);
-#else
-	std::fputc (c, stdout);
+		if (c == EOF) return;
+		char ch = (char) c; 
+		WriteConsole (hOut, &ch, 1, NULL, NULL);
 #endif
+	}
 }
 
 void ConsoleHandle::puts (const std::string& s) {
+	IF_VT {
+		std::printf (s.c_str());
+	} else {
 #if defined(_WIN32)
-	WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
-#else
-	std::printf (s.c_str());
+		WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
 #endif
+	}
 }
 
 void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
@@ -157,6 +169,12 @@ void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 termsize_t ConsoleHandle::bottom_line () {
 #if defined(_WIN32)
 	return csbi().srWindow.Bottom;
+#endif
+}
+
+bool ConsoleHandle::is_last_column (termsize_t x) {
+#if defined(_WIN32)
+	return x >= csbi().dwSize.X - 1;
 #endif
 }
 

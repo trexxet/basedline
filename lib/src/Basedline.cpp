@@ -3,21 +3,31 @@
 #include <cctype>
 
 #include "LineEdit.hpp"
+#include "Debug.hpp"
 
 #define BL_MAX_PRINT_LIMIT 64
 #define BL_MAX_READ_LIMIT 256
 
 namespace Basedline {
 
-void Basedline::restore_input () {
-	if (!readState) return;
-	readState->inputLine = tty.bottom_line();
+void Basedline::print_input () {
+	if (!readState) [[unlikely]] return;
 	// TODO: line wrap
 	tty.con.cursor.move ({0, readState->inputLine});
 	tty.puts (readState->prompt + readState->linebuf);
 	tty.con.cursor.move ({
 		static_cast<termsize_t> (readState->prompt.length() + readState->linebufCursor), readState->inputLine
 	});
+}
+
+void Basedline::restore_input () {
+	if (!readState) [[unlikely]] return;
+	readState->inputLine = tty.bottom_line();
+	if (outputPos.Y == readState->inputLine && outputPos.X > 0) {
+		tty.con.cursor.new_input_line (&readState->inputLine);
+		outputPos.Y--;
+	}
+	print_input ();
 }
 
 // TODO: process input in batches
@@ -55,7 +65,7 @@ void Basedline::line_edit (TTY::Input& input) {
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
 	readState.emplace (prompt, tty.bottom_line());
-	restore_input();
+	print_input();
 	return true;
 }
 
@@ -67,8 +77,12 @@ void Basedline::do_print () {
 	do {
 		tty.puts (printQueue.pop().value());
 		printed++;
+		outputPos = tty.con.cursor.pos();
+		if (tty.con.is_last_column (outputPos.X)) {
+			tty.puts ("\n");
+			outputPos = tty.con.cursor.pos();
+		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
-	outputPos = tty.con.cursor.pos();
 	if (readState)
 		restore_input();
 }

@@ -9,8 +9,12 @@
 
 #if defined(_WIN32)
 # define IF_VT if (vt)
+# define IF_CONPTY if (conpty)
+# define IF_VT_CONPTY if (vt && conpty)
 #else
 # define IF_VT if (true)
+# define IF_CONPTY if (true)
+# define IF_VT_CONPTY if (true)
 #endif
 
 #define TRY_VT 1
@@ -23,8 +27,11 @@ coord_t ConsoleHandle::Cursor::pos () {
 #endif
 }
 
+// TODO: trace moves, find excess ones
 void ConsoleHandle::Cursor::move (coord_t pos) {
-	IF_VT {
+	// For some unknown reason, cmd won't move cursor up if it's on the bottom
+	// of srWindow even when VT is enabled.
+	IF_VT_CONPTY {
 		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
 #if defined(_WIN32)
@@ -36,8 +43,8 @@ void ConsoleHandle::Cursor::move (coord_t pos) {
 
 // TODO: multiline wrap
 void ConsoleHandle::Cursor::shift (termsize_t dx) {
+	if (dx == 0) [[unlikely]] return;
 	IF_VT {
-		if (dx == 0) return;
 		std::printf (dx > 0 ? VT_CUF : VT_CUB, dx > 0 ? dx : -dx);
 	} else {
 #if defined(_WIN32)
@@ -48,10 +55,16 @@ void ConsoleHandle::Cursor::shift (termsize_t dx) {
 	}
 }
 
-// TODO: if posix/conpty, not if vt
-void ConsoleHandle::Cursor::new_input_line (termsize_t *line) {
-	IF_VT std::printf ("\n");
-	else if (line) [[likely]] (*line)++;
+void ConsoleHandle::Cursor::separate_io_lines (termsize_t *iline, termsize_t *oline) {
+	IF_CONPTY {
+		if (!oline) [[unlikely]] return;
+		(*oline)--;
+		std::printf ("\n");
+	} else {
+		if (!iline) [[unlikely]] return;
+		(*iline)++;
+		IF_VT std::printf ("\n");
+	}
 }
 
 // TODO: cache csbi
@@ -184,6 +197,10 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);
 	BL_DEBUG ("New ConsoleHandle hOut {} hIn {}\n", hOut, hIn);
+
+	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
+	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
+	BL_DEBUG ("ConPTY: {}\n", conpty);
 #endif
 }
 

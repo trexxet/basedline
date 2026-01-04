@@ -23,10 +23,8 @@ void Basedline::print_input () {
 void Basedline::restore_input () {
 	if (!readState) [[unlikely]] return;
 	readState->inputLine = tty.bottom_line();
-	if (outputPos.Y == readState->inputLine && outputPos.X > 0) {
-		tty.con.cursor.new_input_line (&readState->inputLine);
-		outputPos.Y--;
-	}
+	if (outputPos.Y == readState->inputLine && outputPos.X > 0)
+		tty.con.cursor.separate_io_lines (&readState->inputLine, &outputPos.Y);
 	print_input ();
 }
 

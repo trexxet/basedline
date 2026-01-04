@@ -17,6 +17,7 @@ class ConsoleHandle {
 	HANDLE hIn = INVALID_HANDLE_VALUE;
 	HANDLE hOut = INVALID_HANDLE_VALUE;
 	DWORD hOutModeSave;
+	bool conpty = false;
 	bool vt = false;
 #endif
 	bool configured = false;
@@ -25,14 +26,15 @@ public:
 	class Cursor {
 	private:
 		ConsoleHandle& con;
+		bool& conpty;
 		bool& vt;
 	public:
 		coord_t pos ();
 		void move (coord_t pos);
 		void shift (termsize_t dx);
-		void new_input_line (termsize_t *line);
+		void separate_io_lines (termsize_t *iline, termsize_t *oline);
 
-		Cursor (ConsoleHandle& con) : con (con), vt (con.vt) { }
+		Cursor (ConsoleHandle& con) : con (con), vt (con.vt), conpty (con.conpty) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 

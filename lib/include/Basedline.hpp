@@ -14,8 +14,6 @@ namespace Basedline {
 
 class Basedline {
 	ConsoleHandle con;
-	void print_input ();
-	void restore_input ();
 
 	std::optional<ReadState> readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
@@ -25,7 +23,7 @@ class Basedline {
 	bool process_input (Input& input);
 	void line_edit (Input& input);
 
-	coord_t outputPos;
+	coord_t printPos;
 	void do_print ();
 public:
 	bool read (const std::string& prompt);

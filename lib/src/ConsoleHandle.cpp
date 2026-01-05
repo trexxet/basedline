@@ -55,18 +55,6 @@ void ConsoleHandle::Cursor::shift (termsize_t dx) {
 	}
 }
 
-void ConsoleHandle::Cursor::separate_io_lines (termsize_t *iline, termsize_t *oline) {
-	IF_CONPTY {
-		if (!oline) [[unlikely]] return;
-		(*oline)--;
-		std::printf ("\n");
-	} else {
-		if (!iline) [[unlikely]] return;
-		(*iline)++;
-		IF_VT std::printf ("\n");
-	}
-}
-
 // TODO: cache csbi
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
@@ -139,6 +127,7 @@ void ConsoleHandle::putc (int c) {
 	std::fputc (c, stdout);
 }
 
+// TODO: std::string_view
 void ConsoleHandle::puts (const std::string& s) {
 	std::printf (s.c_str());
 }
@@ -172,10 +161,21 @@ termsize_t ConsoleHandle::bottom_line () {
 #endif
 }
 
+// TODO: cache window size
 bool ConsoleHandle::is_last_column (termsize_t x) {
 #if defined(_WIN32)
 	return x >= csbi().dwSize.X - 1;
 #endif
+}
+
+void ConsoleHandle::resolve_io_line_overlap (termsize_t& iline, termsize_t& oline) {
+	IF_CONPTY {
+		oline--;
+		std::printf ("\n");
+	} else {
+		iline++;
+		IF_VT std::printf ("\n");
+	}
 }
 
 ConsoleHandle::ConsoleHandle () : cursor (*this) {

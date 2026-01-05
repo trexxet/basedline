@@ -10,30 +10,12 @@
 
 namespace Basedline {
 
-void Basedline::print_input () {
-	if (!readState) [[unlikely]] return;
-	// TODO: line wrap
-	con.cursor.move ({0, readState->inputLine});
-	con.puts (readState->prompt + readState->linebuf);
-	con.cursor.move ({
-		static_cast<termsize_t> (readState->prompt.length() + readState->linebufCursor), readState->inputLine
-	});
-}
-
-void Basedline::restore_input () {
-	if (!readState) [[unlikely]] return;
-	readState->inputLine = con.bottom_line();
-	if (outputPos.Y == readState->inputLine && outputPos.X > 0)
-		con.cursor.separate_io_lines (&readState->inputLine, &outputPos.Y);
-	print_input ();
-}
-
 // TODO: process input in batches
 OptString Basedline::read_input () {
 	size_t read = 0;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
-		if (!process_input(input))
+		if (!process_input (input))
 			return std::move (readState->linebuf);
 		read++;
 	}
@@ -61,27 +43,27 @@ void Basedline::line_edit (Input& input) {
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (prompt, con.bottom_line());
-	print_input();
+	readState.emplace (con, prompt, con.bottom_line());
+	readState->redraw (true);
 	return true;
 }
 
 void Basedline::do_print () {
 	if (readState) // TODO: line wrap
 		con.clear_lines (readState->inputLine, readState->inputHeight);
-	con.cursor.move (outputPos);
+	con.cursor.move (printPos);
 	size_t printed = 0;
 	do {
 		con.puts (printQueue.pop().value());
 		printed++;
-		outputPos = con.cursor.pos();
-		if (con.is_last_column (outputPos.X)) {
+		printPos = con.cursor.pos();
+		if (con.is_last_column (printPos.X)) {
 			con.puts ("\n");
-			outputPos = con.cursor.pos();
+			printPos = con.cursor.pos();
 		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
-		restore_input();
+		readState->restore_after_print (printPos);
 }
 
 void Basedline::print (std::string s) {
@@ -95,14 +77,8 @@ OptString Basedline::loop () {
 		OptString inputBuf = read_input();
 		if (inputBuf)
 			readState.reset();
-		else if (readState->dirty) {
-			// TODO: separate
-			if (readState->linebufCursor == readState->linebuf.length()) {
-				con.putc (readState->linebuf.back());
-				readState->dirty = false;
-			}
-			// TODO: redraw from middle
-		}
+		else if (readState->dirty)
+			readState->redraw (false);
 		return inputBuf;
 	}
 	return std::nullopt;
@@ -111,7 +87,7 @@ OptString Basedline::loop () {
 Basedline::Basedline () {
 	if (!con.configure())
 		std::fprintf (stderr, "Failed to configure terminal");
-	outputPos = con.cursor.pos();
+	printPos = con.cursor.pos();
 }
 
 Basedline::~Basedline () {

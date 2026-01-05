@@ -27,13 +27,12 @@ public:
 	class Cursor {
 	private:
 		ConsoleHandle& con;
-		bool& conpty;
-		bool& vt;
+		const bool& conpty;
+		const bool& vt;
 	public:
 		coord_t pos ();
 		void move (coord_t pos);
 		void shift (termsize_t dx);
-		void separate_io_lines (termsize_t *iline, termsize_t *oline);
 
 		Cursor (ConsoleHandle& con) : con (con), vt (con.vt), conpty (con.conpty) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
@@ -55,6 +54,7 @@ public:
 	termsize_t bottom_line ();
 
 	bool is_last_column (termsize_t x);
+	void resolve_io_line_overlap (termsize_t& iline, termsize_t& oline);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

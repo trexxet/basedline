@@ -6,14 +6,20 @@
 
 namespace Basedline {
 
+class ConsoleHandle;
+
 struct ReadState {
+	ConsoleHandle& con;
 	std::string prompt, linebuf;
 	termsize_t inputLine, inputHeight;
 	size_t linebufCursor;
 	bool dirty;
-	
-	ReadState (const std::string& prompt, termsize_t inputLine) :
-		prompt (prompt), linebuf (""), inputLine (inputLine),
+
+	void redraw (bool withPrompt);
+	void restore_after_print (coord_t& lastPrintPos);
+
+	ReadState (ConsoleHandle& con, const std::string& prompt, termsize_t inputLine) :
+		con (con), prompt (prompt), linebuf (""), inputLine (inputLine),
 		inputHeight (1), linebufCursor (0), dirty (false) { }
 };
 

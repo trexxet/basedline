@@ -18,6 +18,7 @@ set(BASEDLINE_SOURCES
 	ConsoleHandle.cpp
 	Input.cpp
 	LineEdit.cpp
+	ReadState.cpp
 )
 list(TRANSFORM BASEDLINE_SOURCES PREPEND src/)
 

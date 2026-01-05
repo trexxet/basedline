@@ -13,18 +13,18 @@ namespace Basedline {
 void Basedline::print_input () {
 	if (!readState) [[unlikely]] return;
 	// TODO: line wrap
-	tty.con.cursor.move ({0, readState->inputLine});
-	tty.puts (readState->prompt + readState->linebuf);
-	tty.con.cursor.move ({
+	con.cursor.move ({0, readState->inputLine});
+	con.puts (readState->prompt + readState->linebuf);
+	con.cursor.move ({
 		static_cast<termsize_t> (readState->prompt.length() + readState->linebufCursor), readState->inputLine
 	});
 }
 
 void Basedline::restore_input () {
 	if (!readState) [[unlikely]] return;
-	readState->inputLine = tty.bottom_line();
+	readState->inputLine = con.bottom_line();
 	if (outputPos.Y == readState->inputLine && outputPos.X > 0)
-		tty.con.cursor.separate_io_lines (&readState->inputLine, &outputPos.Y);
+		con.cursor.separate_io_lines (&readState->inputLine, &outputPos.Y);
 	print_input ();
 }
 
@@ -32,8 +32,8 @@ void Basedline::restore_input () {
 OptString Basedline::read_input () {
 	TTY::Input input;
 	size_t read = 0;
-	while (tty.has_input() && read < BL_MAX_READ_LIMIT) {
-		input = tty.getc();
+	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
+		input = tty.getc (con);
 		if (!process_input(input))
 			return std::move (readState->linebuf);
 		read++;
@@ -55,30 +55,30 @@ bool Basedline::process_input (TTY::Input& input) {
 void Basedline::line_edit (TTY::Input& input) {
 	LineEdit::apply (input, readState.value());
 	if (input.is_left ())
-		tty.con.cursor.shift (-1);
+		con.cursor.shift (-1);
 	if (input.is_right ())
-		tty.con.cursor.shift (1);
+		con.cursor.shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (prompt, tty.bottom_line());
+	readState.emplace (prompt, con.bottom_line());
 	print_input();
 	return true;
 }
 
 void Basedline::do_print () {
 	if (readState) // TODO: line wrap
-		tty.clear_lines (readState->inputLine, readState->inputHeight);
-	tty.con.cursor.move (outputPos);
+		con.clear_lines (readState->inputLine, readState->inputHeight);
+	con.cursor.move (outputPos);
 	size_t printed = 0;
 	do {
-		tty.puts (printQueue.pop().value());
+		con.puts (printQueue.pop().value());
 		printed++;
-		outputPos = tty.con.cursor.pos();
-		if (tty.con.is_last_column (outputPos.X)) {
-			tty.puts ("\n");
-			outputPos = tty.con.cursor.pos();
+		outputPos = con.cursor.pos();
+		if (con.is_last_column (outputPos.X)) {
+			con.puts ("\n");
+			outputPos = con.cursor.pos();
 		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
@@ -99,7 +99,7 @@ OptString Basedline::loop () {
 		else if (readState->dirty) {
 			// TODO: separate
 			if (readState->linebufCursor == readState->linebuf.length()) {
-				tty.putc (readState->linebuf.back());
+				con.putc (readState->linebuf.back());
 				readState->dirty = false;
 			}
 			// TODO: redraw from middle
@@ -110,13 +110,13 @@ OptString Basedline::loop () {
 }
 
 Basedline::Basedline () {
-	if (!tty.con.configure())
+	if (!con.configure())
 		std::fprintf (stderr, "Failed to configure terminal");
-	outputPos = tty.con.cursor.pos();
+	outputPos = con.cursor.pos();
 }
 
 Basedline::~Basedline () {
-	if (!tty.con.unconfigure())
+	if (!con.unconfigure())
 		std::fprintf (stderr, "Failed to restore terminal configuration");
 }
 

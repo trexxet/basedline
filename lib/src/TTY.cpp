@@ -29,7 +29,7 @@ void TTY::process_control_key (TTY::Input& input, const ConsoleHandle::RawInput&
 #endif
 }
 
-TTY::Input TTY::getc () {
+TTY::Input TTY::getc (ConsoleHandle& con) {
 	Input input;
 	ConsoleHandle::RawInput rawInput = con.get_input();
 	if (rawInput.type == ConsoleHandle::RawInput::Type::Unknown)
@@ -47,28 +47,6 @@ TTY::Input TTY::getc () {
 #endif
 
 	return input;
-}
-
-bool TTY::has_input () {
-	return con.has_input();
-}
-
-void TTY::putc (int c) {
-	con.putc (c);
-}
-
-void TTY::puts (const std::string& s) {
-	con.puts (s);
-}
-
-void TTY::clear_lines (termsize_t from, termsize_t linesToClear) {
-	if (linesToClear <= 0) [[unlikely]] return;
-	if (from < 0) [[unlikely]] from = 0;
-	con.clear_lines (from, linesToClear);
-}
-
-termsize_t TTY::bottom_line () {
-	return con.bottom_line();
 }
 
 }

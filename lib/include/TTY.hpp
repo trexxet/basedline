@@ -10,8 +10,6 @@ namespace Basedline {
 
 class TTY {
 public:
-	ConsoleHandle con;
-
 	struct Input {
 		enum Flags {
 			OK, HAS_CTRL, IS_EOL, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, count
@@ -32,14 +30,9 @@ private:
 	void process_control_key (Input& input, const ConsoleHandle::RawInput& rawInput);
 
 public:
-	bool has_input ();
-	Input getc ();
-	void putc (int c);
-	void puts (const std::string& s);
-	void clear_lines (termsize_t from, termsize_t linesToClear);
-	termsize_t bottom_line ();
+	Input getc (ConsoleHandle& con);
 
-	TTY () : con () { }
+	TTY () { }
 	BASEDLINE_CLASS_NO_COPY_MOVE (TTY);
 };
 

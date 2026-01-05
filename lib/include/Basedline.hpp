@@ -4,6 +4,8 @@
 #include <string>
 
 #include "Basedlib/ThreadSafeQueue.hpp"
+
+#include "ConsoleHandle.hpp"
 #include "Defs.hpp"
 #include "ReadState.hpp"
 #include "TTY.hpp"
@@ -11,6 +13,7 @@
 namespace Basedline {
 
 class Basedline {
+	ConsoleHandle con;
 	TTY tty;
 	void print_input ();
 	void restore_input ();

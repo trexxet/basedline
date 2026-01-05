@@ -145,6 +145,7 @@ void ConsoleHandle::puts (const std::string& s) {
 
 void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	if (linesToClear <= 0) [[unlikely]] return;
+	if (from < 0) [[unlikely]] from = 0;
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	coord_t scrBufSize = csbi.dwSize;

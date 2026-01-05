@@ -16,8 +16,8 @@ target_compile_definitions(basedline PRIVATE
 set(BASEDLINE_SOURCES
 	Basedline.cpp
 	ConsoleHandle.cpp
+	Input.cpp
 	LineEdit.cpp
-	TTY.cpp
 )
 list(TRANSFORM BASEDLINE_SOURCES PREPEND src/)
 

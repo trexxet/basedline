@@ -30,10 +30,9 @@ void Basedline::restore_input () {
 
 // TODO: process input in batches
 OptString Basedline::read_input () {
-	TTY::Input input;
 	size_t read = 0;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
-		input = tty.getc (con);
+		Input input = Input::get (con);
 		if (!process_input(input))
 			return std::move (readState->linebuf);
 		read++;
@@ -41,7 +40,7 @@ OptString Basedline::read_input () {
 	return std::nullopt;
 }
 
-bool Basedline::process_input (TTY::Input& input) {
+bool Basedline::process_input (Input& input) {
 	if (!input.ok()) [[unlikely]] return true; // just ignore input we can't parse now
 	if (input.is_eol()) [[unlikely]] return false;
 	// handle resize
@@ -52,7 +51,7 @@ bool Basedline::process_input (TTY::Input& input) {
 	return true;
 }
 
-void Basedline::line_edit (TTY::Input& input) {
+void Basedline::line_edit (Input& input) {
 	LineEdit::apply (input, readState.value());
 	if (input.is_left ())
 		con.cursor.shift (-1);

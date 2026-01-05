@@ -7,14 +7,13 @@
 
 #include "ConsoleHandle.hpp"
 #include "Defs.hpp"
+#include "Input.hpp"
 #include "ReadState.hpp"
-#include "TTY.hpp"
 
 namespace Basedline {
 
 class Basedline {
 	ConsoleHandle con;
-	TTY tty;
 	void print_input ();
 	void restore_input ();
 
@@ -23,8 +22,8 @@ class Basedline {
 
 	OptString read_input ();
 	/// @return true if should continue fetching input
-	bool process_input (TTY::Input& input);
-	void line_edit(TTY::Input& input);
+	bool process_input (Input& input);
+	void line_edit (Input& input);
 
 	coord_t outputPos;
 	void do_print ();

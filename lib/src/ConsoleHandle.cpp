@@ -116,7 +116,7 @@ bool ConsoleHandle::has_input () {
 #endif
 }
 
-ConsoleHandle::RawInput ConsoleHandle::get_input () {
+RawInput ConsoleHandle::get_raw_input () {
 	RawInput rawInput;
 #if defined(_WIN32)
 	INPUT_RECORD inputRec;

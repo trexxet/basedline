@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Defs.hpp"
+#include "Input.hpp"
 
 namespace Basedline {
 
@@ -38,14 +39,6 @@ public:
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 
-	struct RawInput {
-		enum class Type { Unknown, Key, Resize } type = Type::Unknown;
-#if defined(_WIN32)
-		CHAR ch;
-		WORD vkey;
-		DWORD mods;
-#endif
-	};
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
@@ -54,7 +47,7 @@ public:
 	bool unconfigure ();
 
 	bool has_input();
-	RawInput get_input ();
+	RawInput get_raw_input ();
 
 	void putc (int c);
 	void puts (const std::string& s);

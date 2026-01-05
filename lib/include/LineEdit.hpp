@@ -1,12 +1,12 @@
 #pragma once
 
+#include "Input.hpp"
 #include "ReadState.hpp"
-#include "TTY.hpp"
 
 namespace Basedline::LineEdit {
 
-bool is_lineedit (const TTY::Input& input);
-void apply (TTY::Input& input, ReadState& rs);
-void apply_lr (TTY::Input& input, ReadState& rs);
+bool is_lineedit (const Input& input);
+void apply (Input& input, ReadState& rs);
+void apply_lr (Input& input, ReadState& rs);
 
 }

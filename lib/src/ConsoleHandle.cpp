@@ -29,8 +29,8 @@ coord_t ConsoleHandle::Cursor::pos () {
 
 // TODO: trace moves, find excess ones
 void ConsoleHandle::Cursor::move (coord_t pos) {
-	// For some unknown reason, cmd won't move cursor up if it's on the bottom
-	// of srWindow even when VT is enabled.
+	// For some unknown reason, Microslop's cmd won't move cursor up
+	// if it's on the bottom of srWindow even when VT is enabled
 	IF_VT_CONPTY {
 		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
@@ -136,25 +136,11 @@ ConsoleHandle::RawInput ConsoleHandle::get_input () {
 }
 
 void ConsoleHandle::putc (int c) {
-	IF_VT {
-		std::fputc (c, stdout);
-	} else {
-#if defined(_WIN32)
-		if (c == EOF) return;
-		char ch = (char) c; 
-		WriteConsole (hOut, &ch, 1, NULL, NULL);
-#endif
-	}
+	std::fputc (c, stdout);
 }
 
 void ConsoleHandle::puts (const std::string& s) {
-	IF_VT {
-		std::printf (s.c_str());
-	} else {
-#if defined(_WIN32)
-		WriteConsole (hOut, s.c_str(), s.length(), NULL, NULL);
-#endif
-	}
+	std::printf (s.c_str());
 }
 
 void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
@@ -198,6 +184,8 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	GetConsoleMode (hOut, &hOutModeSave);
 	BL_DEBUG ("New ConsoleHandle hOut {} hIn {}\n", hOut, hIn);
 
+	// For some unknown reason, Microslop did not provide a documented way to check if we are being run
+	// in a ConPTY terminal, so use buffer height = window height check as it seems to work for now
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
 	BL_DEBUG ("ConPTY: {}\n", conpty);

@@ -33,6 +33,13 @@ void apply_char (Input& input, ReadState& rs) {
 	rs.dirty = rs.insert = true;
 }
 
+void apply_del (Input& input, ReadState& rs) {
+	if (rs.linebufCursor < rs.linebuf.length()) {
+		rs.linebuf.erase (rs.linebufCursor, 1);
+		rs.dirty = true;
+	} else input.flags[Input::Flags::IS_DEL] = false;
+}
+
 bool is_lineedit (const Input& input) {
 	return input.is_lr()
 	    || input.is_bkspc()
@@ -44,6 +51,7 @@ void apply (Input& input, ReadState& rs) {
 	// TODO: switch/case?
 	if (input.is_lr()) return apply_lr (input, rs);
 	if (input.is_bkspc()) return apply_bkspc (input, rs);
+	if (input.is_del()) return apply_del (input, rs);
 	if (std::isprint (input.c)) return apply_char (input, rs);
 }
 

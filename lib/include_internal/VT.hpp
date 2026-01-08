@@ -6,6 +6,7 @@
 #define VT_CUF CSI"%dC"
 #define VT_CUB CSI"%dD"
 #define VT_CUP CSI"%d;%dH"
+#define VT_DCH CSI"%dP"
 #define VT_DL  CSI"%dM"
 
 #define VT_DECSC ESC"7"

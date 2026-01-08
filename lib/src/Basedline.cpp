@@ -1,7 +1,5 @@
 #include "Basedline.hpp"
 
-#include <cctype>
-
 #include "LineEdit.hpp"
 #include "Debug.hpp"
 
@@ -35,16 +33,16 @@ bool Basedline::process_input (Input& input) {
 
 void Basedline::line_edit (Input& input) {
 	LineEdit::apply (input, readState.value());
-	if (input.is_left ())
+	if (input.is_left() || input.is_bkspc())
 		con.cursor.shift (-1);
-	if (input.is_right ())
+	if (input.is_right())
 		con.cursor.shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
 	readState.emplace (con, prompt, con.bottom_line());
-	readState->redraw (true);
+	readState->redraw_with_prompt();
 	return true;
 }
 
@@ -78,7 +76,7 @@ OptString Basedline::loop () {
 		if (inputBuf)
 			readState.reset();
 		else if (readState->dirty)
-			readState->redraw (false);
+			readState->redraw_from_cursor();
 		return inputBuf;
 	}
 	return std::nullopt;

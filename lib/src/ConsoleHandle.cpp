@@ -132,6 +132,20 @@ void ConsoleHandle::puts (const std::string& s) {
 	std::printf (s.c_str());
 }
 
+void ConsoleHandle::clear_char () {
+	IF_VT {
+		std::printf (VT_DCH, 1);
+	} else {
+#if defined(_WIN32)
+		CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
+		coord_t startPos = cursor.pos();
+		DWORD written;
+		FillConsoleOutputCharacter (hOut, ' ', 1, startPos, &written);
+		FillConsoleOutputAttribute (hOut, csbi.wAttributes, 1, startPos, &written);
+#endif
+	}
+}
+
 void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	if (linesToClear <= 0) [[unlikely]] return;
 	if (from < 0) [[unlikely]] from = 0;

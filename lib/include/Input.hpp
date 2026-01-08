@@ -22,7 +22,7 @@ class Input {
 	void process_control_key (const RawInput& rawInput);
 public:
 	enum Flags {
-		OK, HAS_CTRL, IS_EOL, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, count
+		OK, HAS_CTRL, IS_EOL, IS_LEFT, IS_RIGHT, IS_UP, IS_DOWN, IS_DEL, IS_BKSPC, count
 	};
 	std::bitset<Flags::count> flags;
 	inline bool ok ()       const { return flags[Flags::OK]; }
@@ -32,6 +32,8 @@ public:
 	inline bool is_lr ()    const { return is_left() || is_right(); }
 	inline bool is_up ()    const { return flags[Flags::IS_UP]; }
 	inline bool is_down ()  const { return flags[Flags::IS_DOWN]; }
+	inline bool is_del ()   const { return flags[Flags::IS_DEL]; }
+	inline bool is_bkspc () const { return flags[Flags::IS_BKSPC]; }
 
 	int c;
 

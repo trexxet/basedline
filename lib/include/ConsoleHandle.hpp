@@ -50,6 +50,7 @@ public:
 
 	void putc (int c);
 	void puts (const std::string& s);
+	void clear_char ();
 	void clear_lines (termsize_t from, termsize_t linesToClear);
 	termsize_t bottom_line ();
 

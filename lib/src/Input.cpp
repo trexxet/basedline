@@ -1,6 +1,8 @@
 #include "Input.hpp"
 
+#if defined(BASEDLINE_DEBUG)
 #include <cctype>
+#endif
 
 #include "ConsoleHandle.hpp"
 #include "Debug.hpp"
@@ -19,6 +21,12 @@ void Input::process_control_key (const RawInput& rawInput) {
 			break;
 		case VK_RIGHT:
 			flags[Input::Flags::IS_RIGHT] = true;
+			break;
+		case VK_BACK:
+			flags[Input::Flags::IS_BKSPC] = true;
+			break;
+		case VK_DELETE:
+			flags[Input::Flags::IS_DEL] = true;
 			break;
 		case 'D':
 		case 'Z':

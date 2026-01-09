@@ -127,9 +127,8 @@ void ConsoleHandle::putc (int c) {
 	std::fputc (c, stdout);
 }
 
-// TODO: std::string_view
-void ConsoleHandle::puts (const std::string& s) {
-	std::printf (s.c_str());
+void ConsoleHandle::puts (std::string_view s) {
+	std::fputs (s.data(), stdout);
 }
 
 void ConsoleHandle::clear_chars (int count) {
@@ -185,10 +184,10 @@ bool ConsoleHandle::is_last_column (termsize_t x) {
 void ConsoleHandle::resolve_io_line_overlap (termsize_t& iline, termsize_t& oline) {
 	IF_CONPTY {
 		oline--;
-		std::printf ("\n");
+		std::putchar ('\n');
 	} else {
 		iline++;
-		IF_VT std::printf ("\n");
+		IF_VT std::putchar ('\n');
 	}
 }
 

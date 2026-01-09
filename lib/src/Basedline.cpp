@@ -57,7 +57,7 @@ void Basedline::do_print () {
 		printed++;
 		printPos = con.cursor.pos();
 		if (con.is_last_column (printPos.X)) {
-			con.puts ("\n");
+			con.putc ('\n');
 			printPos = con.cursor.pos();
 		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
@@ -85,13 +85,13 @@ OptString Basedline::loop () {
 
 Basedline::Basedline () {
 	if (!con.configure())
-		std::fprintf (stderr, "Failed to configure terminal");
+		std::fputs ("Failed to configure terminal", stderr);
 	printPos = con.cursor.pos();
 }
 
 Basedline::~Basedline () {
 	if (!con.unconfigure())
-		std::fprintf (stderr, "Failed to restore terminal configuration");
+		std::fputs ("Failed to restore terminal configuration", stderr);
 }
 
 }

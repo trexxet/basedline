@@ -5,7 +5,7 @@
 #include <windows.h>
 #endif
 
-#include <string>
+#include <string_view>
 
 #include "Defs.hpp"
 #include "Input.hpp"
@@ -49,7 +49,7 @@ public:
 	RawInput get_raw_input ();
 
 	void putc (int c);
-	void puts (const std::string& s);
+	void puts (std::string_view s);
 	void clear_chars (int count);
 	void clear_lines (termsize_t from, termsize_t linesToClear);
 	termsize_t bottom_line ();

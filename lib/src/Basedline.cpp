@@ -11,6 +11,7 @@ namespace Basedline {
 // TODO: process input in batches
 OptString Basedline::read_input () {
 	size_t read = 0;
+	readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
 		if (!process_input (input))

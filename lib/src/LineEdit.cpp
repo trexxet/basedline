@@ -19,6 +19,7 @@ void apply_bkspc (Input& input, ReadState& rs) {
 		rs.linebuf.erase (rs.linebufCursor - 1, 1);
 		rs.linebufCursor--;
 		rs.dirty = true;
+		rs.deletes++;
 	} else input.flags[Input::Flags::IS_BKSPC] = false;
 }
 
@@ -29,13 +30,14 @@ void apply_print (Input& input, ReadState& rs) {
 	else
 		rs.linebuf.insert (rs.linebufCursor, 1, input.c);
 	rs.linebufCursor++;
-	rs.dirty = rs.insert = true;
+	rs.dirty = true;
 }
 
 void apply_del (Input& input, ReadState& rs) {
 	if (rs.linebufCursor < rs.linebuf.length()) {
 		rs.linebuf.erase (rs.linebufCursor, 1);
 		rs.dirty = true;
+		rs.deletes++;
 	} else input.flags[Input::Flags::IS_DEL] = false;
 }
 

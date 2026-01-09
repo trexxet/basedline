@@ -1,20 +1,21 @@
 #include "ReadState.hpp"
 
+#include <algorithm>
+
 #include "ConsoleHandle.hpp"
 
 namespace Basedline {
 
 void ReadState::redraw_from_cursor () {
-	if (linebufCursor == linebuf.length() && insert) {
-		con.putc (linebuf.back());
-	} else {
-		con.puts (linebuf.substr (insert ? linebufCursor - 1 : linebufCursor));
-		if (!insert) con.clear_char();
-		con.cursor.move ({ // move to linebuf pos
-			static_cast<termsize_t> (prompt.length() + linebufCursor), inputLine
-		});
+	con.puts (linebuf.substr (std::min (linebufCursor, linebufCursorSave)));
+	if (deletes > 0) {
+		con.clear_chars (deletes);
+		deletes = 0;
 	}
-	dirty = insert = false;
+	con.cursor.move ({ // move to linebuf pos
+		static_cast<termsize_t> (prompt.length() + linebufCursor), inputLine
+	});
+	dirty = false;
 }
 
 void ReadState::redraw_with_prompt () {
@@ -23,7 +24,7 @@ void ReadState::redraw_with_prompt () {
 	con.cursor.move ({ // move to linebuf pos
 		static_cast<termsize_t> (prompt.length() + linebufCursor), inputLine
 	});
-	dirty = insert = false;
+	dirty = false;
 }
 
 void ReadState::restore_after_print (coord_t& lastPrintPos) {

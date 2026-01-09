@@ -132,16 +132,16 @@ void ConsoleHandle::puts (const std::string& s) {
 	std::printf (s.c_str());
 }
 
-void ConsoleHandle::clear_char () {
+void ConsoleHandle::clear_chars (int count) {
 	IF_VT {
-		std::printf (VT_DCH, 1);
+		std::printf (VT_DCH, count);
 	} else {
 #if defined(_WIN32)
 		CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 		coord_t startPos = cursor.pos();
 		DWORD written;
-		FillConsoleOutputCharacter (hOut, ' ', 1, startPos, &written);
-		FillConsoleOutputAttribute (hOut, csbi.wAttributes, 1, startPos, &written);
+		FillConsoleOutputCharacter (hOut, ' ', count, startPos, &written);
+		FillConsoleOutputAttribute (hOut, csbi.wAttributes, count, startPos, &written);
 #endif
 	}
 }

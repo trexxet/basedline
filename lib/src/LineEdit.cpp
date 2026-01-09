@@ -1,7 +1,6 @@
 #include "LineEdit.hpp"
 
 #include <bitset>
-#include <cctype>
 
 namespace Basedline::LineEdit {
 
@@ -23,7 +22,7 @@ void apply_bkspc (Input& input, ReadState& rs) {
 	} else input.flags[Input::Flags::IS_BKSPC] = false;
 }
 
-void apply_char (Input& input, ReadState& rs) {
+void apply_print (Input& input, ReadState& rs) {
 	// TODO: add reserve for linebuf
 	if (rs.linebufCursor == rs.linebuf.length())
 		rs.linebuf += input.c;
@@ -44,15 +43,15 @@ bool is_lineedit (const Input& input) {
 	return input.is_lr()
 	    || input.is_bkspc()
 	    || input.is_del()
-	    || std::isprint (input.c);
+	    || input.is_print();
 }
 
 void apply (Input& input, ReadState& rs) {
 	// TODO: switch/case?
-	if (input.is_lr()) return apply_lr (input, rs);
+	if (input.is_lr())    return apply_lr (input, rs);
 	if (input.is_bkspc()) return apply_bkspc (input, rs);
-	if (input.is_del()) return apply_del (input, rs);
-	if (std::isprint (input.c)) return apply_char (input, rs);
+	if (input.is_del())   return apply_del (input, rs);
+	if (input.is_print()) return apply_print (input, rs);
 }
 
 }

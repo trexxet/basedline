@@ -1,9 +1,5 @@
 #include "Input.hpp"
 
-#if defined(BASEDLINE_DEBUG)
-#include <cctype>
-#endif
-
 #include "ConsoleHandle.hpp"
 #include "Debug.hpp"
 
@@ -56,7 +52,7 @@ Input Input::get (ConsoleHandle& con) {
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 				rawInput.mods, rawInput.vkey, input.c, 
-				std::isprint (input.c) ? (char) input.c : ' ');
+				input.is_print() ? (char) input.c : ' ');
 #endif
 
 	return input;

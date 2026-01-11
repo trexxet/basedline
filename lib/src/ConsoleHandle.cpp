@@ -10,11 +10,9 @@
 #if defined(_WIN32)
 # define IF_VT if (vt)
 # define IF_CONPTY if (conpty)
-# define IF_VT_CONPTY if (vt && conpty)
 #else
 # define IF_VT if (true)
 # define IF_CONPTY if (true)
-# define IF_VT_CONPTY if (true)
 #endif
 
 #define TRY_VT 1
@@ -31,7 +29,7 @@ coord_t ConsoleHandle::Cursor::pos () {
 void ConsoleHandle::Cursor::move (coord_t pos) {
 	// For some unknown reason, Microslop's cmd won't move cursor up
 	// if it's on the bottom of srWindow even when VT is enabled
-	IF_VT_CONPTY {
+	IF_CONPTY {
 		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
 #if defined(_WIN32)
@@ -41,18 +39,23 @@ void ConsoleHandle::Cursor::move (coord_t pos) {
 	}
 }
 
-// TODO: multiline wrap
 void ConsoleHandle::Cursor::shift (termsize_t dx) {
 	if (dx == 0) [[unlikely]] return;
-	IF_VT {
-		std::printf (dx > 0 ? VT_CUF : VT_CUB, dx > 0 ? dx : -dx);
-	} else {
+	coord_t currPos = pos();
+	move (wrap (currPos.Y, currPos.X + dx));
+}
+
+coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
 #if defined(_WIN32)
-		coord_t curr_pos = pos();
-		termsize_t x = curr_pos.X + dx;
-		move ({x, curr_pos.Y});
+	termsize_t lineWidth = con.csbi().dwSize.X;
 #endif
-	}
+	termsize_t Y = static_cast<termsize_t> (line + pos / lineWidth);
+	termsize_t X = static_cast<termsize_t> (pos % lineWidth);
+	if (X < 0)
+		return {static_cast<termsize_t> (X + lineWidth), static_cast<termsize_t> (Y - 1)};
+	if (X > 0 && con.is_last_column (X - 1)) [[unlikely]]
+		return {0, static_cast<termsize_t> (Y + 1)};
+	return {X, Y};
 }
 
 // TODO: cache csbi
@@ -71,7 +74,9 @@ bool ConsoleHandle::configure () {
 	DWORD outMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
 		ENABLE_WRAP_AT_EOL_OUTPUT;
-	if (TRY_VT) {
+	IF_CONPTY {
+		vt = true;
+	} else if (TRY_VT) {
 		outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 		vt = SetConsoleMode (hOut, outMode);
 		BL_DEBUG ("VT mode: {}\n", vt);
@@ -131,9 +136,13 @@ void ConsoleHandle::puts (std::string_view s) {
 	std::fputs (s.data(), stdout);
 }
 
-void ConsoleHandle::clear_chars (int count) {
+void ConsoleHandle::clear_chars (size_t count) {
+	if (count == 0) [[unlikely]] return;
 	IF_VT {
-		std::printf (VT_DCH, count);
+		static std::string spaces;
+		if (count > spaces.length())
+			spaces.append (count - spaces.length(), ' ');
+		std::fwrite (spaces.data(), 1, count, stdout);
 	} else {
 #if defined(_WIN32)
 		CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
@@ -174,6 +183,11 @@ termsize_t ConsoleHandle::bottom_line () {
 #endif
 }
 
+void ConsoleHandle::scroll (termsize_t linesToScroll) {
+	if (linesToScroll <= 0) [[unlikely]] return;
+	IF_CONPTY std::printf (VT_SU VT_CUU, linesToScroll, linesToScroll);
+}
+
 // TODO: cache window size
 bool ConsoleHandle::is_last_column (termsize_t x) {
 #if defined(_WIN32)
@@ -189,6 +203,16 @@ void ConsoleHandle::resolve_io_line_overlap (termsize_t& iline, termsize_t& olin
 		iline++;
 		IF_VT std::putchar ('\n');
 	}
+}
+
+void ConsoleHandle::scroll_to_fit_text (termsize_t& startLine, termsize_t& lineHeight, size_t len) {
+	termsize_t newHeight = cursor.wrap (startLine, len).Y - startLine + 1;
+	if (newHeight <= lineHeight) [[likely]] return;
+
+	termsize_t linesToScroll = newHeight - lineHeight;
+	scroll (linesToScroll);
+	lineHeight = newHeight;
+	IF_CONPTY startLine -= linesToScroll;
 }
 
 ConsoleHandle::ConsoleHandle () : cursor (*this) {

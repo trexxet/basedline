@@ -51,11 +51,11 @@ coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
 #endif
 	termsize_t Y = static_cast<termsize_t> (line + pos / lineWidth);
 	termsize_t X = static_cast<termsize_t> (pos % lineWidth);
-	if (X < 0)
+	if (X < 0) [[unlikely]]
 		return {static_cast<termsize_t> (X + lineWidth), static_cast<termsize_t> (Y - 1)};
-	if (X > 0 && con.is_last_column (X - 1)) [[unlikely]]
+	else if (X > 0 && con.is_last_column (X - 1)) [[unlikely]]
 		return {0, static_cast<termsize_t> (Y + 1)};
-	return {X, Y};
+	else return {X, Y};
 }
 
 // TODO: cache csbi
@@ -228,6 +228,8 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
 	BL_DEBUG ("ConPTY: {}\n", conpty);
 #endif
+
+	printPos = cursor.pos();
 }
 
 }

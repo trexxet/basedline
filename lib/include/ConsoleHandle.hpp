@@ -39,6 +39,7 @@ public:
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 
+	coord_t printPos;
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();

@@ -50,19 +50,19 @@ bool Basedline::read (const std::string& prompt) {
 void Basedline::do_print () {
 	if (readState) // TODO: line wrap
 		con.clear_lines (readState->inputLine, readState->inputHeight);
-	con.cursor.move (printPos);
+	con.cursor.move (con.printPos);
 	size_t printed = 0;
 	do {
 		con.puts (printQueue.pop().value());
 		printed++;
-		printPos = con.cursor.pos();
-		if (con.is_last_column (printPos.X)) {
+		con.printPos = con.cursor.pos();
+		if (con.is_last_column (con.printPos.X)) {
 			con.putc ('\n');
-			printPos = con.cursor.pos();
+			con.printPos = con.cursor.pos();
 		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
-		readState->restore_after_print (printPos);
+		readState->restore_after_print (con.printPos);
 }
 
 void Basedline::print (std::string s) {
@@ -86,7 +86,6 @@ OptString Basedline::loop () {
 Basedline::Basedline () {
 	if (!con.configure())
 		std::fputs ("Failed to configure terminal", stderr);
-	printPos = con.cursor.pos();
 }
 
 Basedline::~Basedline () {

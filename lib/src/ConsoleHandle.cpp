@@ -1,5 +1,6 @@
 #include "ConsoleHandle.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <format>
 #include <stdexcept>
@@ -163,7 +164,8 @@ void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	if (from + linesToClear > scrBufSize.Y) [[unlikely]] linesToClear = scrBufSize.Y - from;
 #endif
 
-	IF_VT {
+	// This one won't work as well in Microslop's CMD + VT
+	IF_CONPTY {
 		std::printf (VT_DECSC VT_CUP VT_DL VT_DECSR, from + 1, 1, linesToClear);
 	} else {
 #if defined(_WIN32)
@@ -195,13 +197,14 @@ bool ConsoleHandle::is_last_column (termsize_t x) {
 #endif
 }
 
-void ConsoleHandle::resolve_io_line_overlap (termsize_t& iline, termsize_t& oline) {
+void ConsoleHandle::adjust_io_lines (termsize_t& inputLine, termsize_t inputHeight) {
+	inputLine = std::max (bottom_line() - inputHeight + 1, printPos.X > 0 ? printPos.Y + 1 : printPos.Y);
 	IF_CONPTY {
-		oline--;
-		std::putchar ('\n');
-	} else {
-		iline++;
-		IF_VT std::putchar ('\n');
+		printPos.Y -= (inputHeight - 1) - (bottom_line() - inputLine);
+		if (inputLine > bottom_line()) {
+			scroll (1);
+			inputLine--;
+		}
 	}
 }
 
@@ -212,7 +215,10 @@ void ConsoleHandle::scroll_to_fit_text (termsize_t& startLine, termsize_t& lineH
 	termsize_t linesToScroll = newHeight - lineHeight;
 	scroll (linesToScroll);
 	lineHeight = newHeight;
-	IF_CONPTY startLine -= linesToScroll;
+	IF_CONPTY {
+		startLine -= linesToScroll;
+		printPos.Y -= linesToScroll;
+	}
 }
 
 ConsoleHandle::ConsoleHandle () : cursor (*this) {

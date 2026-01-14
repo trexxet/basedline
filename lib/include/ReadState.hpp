@@ -19,7 +19,7 @@ struct ReadState {
 
 	void redraw_from_cursor ();
 	void redraw_with_prompt ();
-	void restore_after_print (coord_t& lastPrintPos);
+	void restore_after_print ();
 
 	ReadState (ConsoleHandle& con, const std::string& prompt, termsize_t inputLine) :
 		con (con), prompt (prompt), linebuf (""), inputLine (inputLine),

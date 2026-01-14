@@ -48,7 +48,7 @@ bool Basedline::read (const std::string& prompt) {
 }
 
 void Basedline::do_print () {
-	if (readState) // TODO: line wrap
+	if (readState)
 		con.clear_lines (readState->inputLine, readState->inputHeight);
 	con.cursor.move (con.printPos);
 	size_t printed = 0;
@@ -62,7 +62,7 @@ void Basedline::do_print () {
 		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
-		readState->restore_after_print (con.printPos);
+		readState->restore_after_print ();
 }
 
 void Basedline::print (std::string s) {

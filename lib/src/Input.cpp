@@ -48,7 +48,7 @@ Input Input::get (ConsoleHandle& con) {
 		return Input::make_err();
 	Input input = Input::make_from_raw (rawInput);
 
-#if defined(_WIN32)
+#if defined(_WIN32) && 0
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
 				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
 				rawInput.mods, rawInput.vkey, input.c, 

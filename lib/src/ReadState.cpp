@@ -18,18 +18,16 @@ void ReadState::redraw_from_cursor () {
 }
 
 void ReadState::redraw_with_prompt () {
-	con.scroll_to_fit_text (inputLine, inputHeight, prompt.length() + linebuf.length());
 	con.cursor.move ({0, inputLine});
 	con.puts (prompt);
 	con.puts (linebuf);
+	inputLine = con.bottom_line() - inputHeight + 1;
 	con.cursor.move (con.cursor.wrap (inputLine, prompt.length() + linebufCursor));
 	dirty = false;
 }
 
-void ReadState::restore_after_print (coord_t& lastPrintPos) {
-	inputLine = con.bottom_line();
-	if (lastPrintPos.Y >= inputLine && lastPrintPos.X > 0)
-		con.resolve_io_line_overlap (inputLine, lastPrintPos.Y);
+void ReadState::restore_after_print () {
+	con.adjust_io_lines (inputLine, inputHeight);
 	redraw_with_prompt();
 }
 

@@ -58,7 +58,7 @@ public:
 	void scroll (termsize_t linesToScroll);
 
 	bool is_last_column (termsize_t x);
-	void resolve_io_line_overlap (termsize_t& iline, termsize_t& oline);
+	void adjust_io_lines (termsize_t& inputLine, termsize_t inputHeight);
 	void scroll_to_fit_text (termsize_t& startLine, termsize_t& lineHeight, size_t len);
 
 	ConsoleHandle ();

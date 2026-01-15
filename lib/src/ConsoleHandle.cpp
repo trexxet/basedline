@@ -197,7 +197,7 @@ bool ConsoleHandle::is_last_column (termsize_t x) {
 #endif
 }
 
-void ConsoleHandle::adjust_io_lines (termsize_t& inputLine, termsize_t inputHeight) {
+void ConsoleHandle::adjust_io_lines (termsize_t inputHeight) {
 	inputLine = std::max (bottom_line() - inputHeight + 1, printPos.X > 0 ? printPos.Y + 1 : printPos.Y);
 	IF_CONPTY {
 		printPos.Y -= (inputHeight - 1) - (bottom_line() - inputLine);
@@ -208,15 +208,15 @@ void ConsoleHandle::adjust_io_lines (termsize_t& inputLine, termsize_t inputHeig
 	}
 }
 
-void ConsoleHandle::scroll_to_fit_text (termsize_t& startLine, termsize_t& lineHeight, size_t len) {
-	termsize_t newHeight = cursor.wrap (startLine, len).Y - startLine + 1;
-	if (newHeight <= lineHeight) [[likely]] return;
+void ConsoleHandle::recalculate_height (termsize_t& height, size_t len) {
+	termsize_t newHeight = cursor.wrap (inputLine, len).Y - inputLine + 1;
+	if (newHeight <= height) [[likely]] return;
 
-	termsize_t linesToScroll = newHeight - lineHeight;
+	termsize_t linesToScroll = newHeight - height;
 	scroll (linesToScroll);
-	lineHeight = newHeight;
+	height = newHeight;
 	IF_CONPTY {
-		startLine -= linesToScroll;
+		inputLine -= linesToScroll;
 		printPos.Y -= linesToScroll;
 	}
 }
@@ -236,6 +236,7 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 #endif
 
 	printPos = cursor.pos();
+	inputLine = bottom_line();
 }
 
 }

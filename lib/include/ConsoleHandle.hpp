@@ -40,6 +40,7 @@ public:
 	} cursor;
 
 	coord_t printPos;
+	termsize_t inputLine;
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
@@ -58,8 +59,8 @@ public:
 	void scroll (termsize_t linesToScroll);
 
 	bool is_last_column (termsize_t x);
-	void adjust_io_lines (termsize_t& inputLine, termsize_t inputHeight);
-	void scroll_to_fit_text (termsize_t& startLine, termsize_t& lineHeight, size_t len);
+	void adjust_io_lines (termsize_t inputHeight);
+	void recalculate_height (termsize_t& height, size_t len);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

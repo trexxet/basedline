@@ -42,14 +42,14 @@ void Basedline::line_edit (Input& input) {
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (con, prompt, con.bottom_line());
+	readState.emplace (con, prompt);
 	readState->redraw_with_prompt();
 	return true;
 }
 
 void Basedline::do_print () {
 	if (readState)
-		con.clear_lines (readState->inputLine, readState->inputHeight);
+		con.clear_lines (con.inputLine, readState->inputHeight);
 	con.cursor.move (con.printPos);
 	size_t printed = 0;
 	do {

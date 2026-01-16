@@ -6,10 +6,7 @@
 
 namespace Basedline {
 
-class ConsoleHandle;
-
 struct ReadState {
-	ConsoleHandle& con;
 	std::string prompt;
 	std::string linebuf = "";
 	termsize_t inputHeight = 1;
@@ -18,12 +15,10 @@ struct ReadState {
 	size_t deletes = 0;
 	bool dirty = false;
 
-	void redraw_from_cursor ();
-	void redraw_with_prompt ();
-	void restore_after_print ();
+	inline size_t len () const { return prompt.length() + linebuf.length(); }
+	inline size_t lenToCursor () const { return prompt.length() + linebufCursor; }
 
-	ReadState (ConsoleHandle& con, const std::string& prompt)
-		: con (con), prompt (prompt) { }
+	ReadState (const std::string& prompt) : prompt (prompt) { }
 };
 
 }

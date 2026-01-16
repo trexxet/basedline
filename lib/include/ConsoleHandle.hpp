@@ -39,8 +39,8 @@ public:
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 
-	coord_t printPos;
-	termsize_t inputLine;
+	inline bool is_conpty () const { return conpty; }
+	inline bool is_vt () const { return vt; }
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
@@ -56,12 +56,9 @@ public:
 	void clear_chars (size_t count);
 	void clear_lines (termsize_t from, termsize_t linesToClear);
 	termsize_t bottom_line ();
+	termsize_t line_width ();
 	void scroll (termsize_t linesToScroll);
-
 	bool is_last_column (termsize_t x);
-	void adjust_io_lines (termsize_t inputHeight);
-	void recalculate_height (termsize_t& height, size_t len);
-	void adjust_iline_after_restore (ssize_t curPos);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

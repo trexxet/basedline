@@ -42,27 +42,22 @@ void Basedline::line_edit (Input& input) {
 
 bool Basedline::read (const std::string& prompt) {
 	if (readState) return false;
-	readState.emplace (con, prompt);
-	readState->redraw_with_prompt();
+	readState.emplace (prompt);
+	out.redraw_rs_with_prompt (readState.value());
 	return true;
 }
 
 void Basedline::do_print () {
 	if (readState)
-		con.clear_lines (con.inputLine, readState->inputHeight);
-	con.cursor.move (con.printPos);
+		con.clear_lines (out.inputLine, readState->inputHeight);
+	con.cursor.move (out.printPos);
 	size_t printed = 0;
 	do {
-		con.puts (printQueue.pop().value());
+		out.print (printQueue.pop().value());
 		printed++;
-		con.printPos = con.cursor.pos();
-		if (con.is_last_column (con.printPos.X)) {
-			con.putc ('\n');
-			con.printPos = con.cursor.pos();
-		}
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
-		readState->restore_after_print ();
+		out.restore_rs_after_print (readState.value());
 }
 
 void Basedline::print (std::string s) {
@@ -77,13 +72,13 @@ OptString Basedline::loop () {
 		if (inputBuf)
 			readState.reset();
 		else if (readState->dirty)
-			readState->redraw_from_cursor();
+			out.redraw_rs_from_cursor (readState.value());
 		return inputBuf;
 	}
 	return std::nullopt;
 }
 
-Basedline::Basedline () {
+Basedline::Basedline () : out (con) {
 	if (!con.configure())
 		std::fputs ("Failed to configure terminal", stderr);
 }

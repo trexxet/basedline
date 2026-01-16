@@ -8,12 +8,14 @@
 #include "ConsoleHandle.hpp"
 #include "Defs.hpp"
 #include "Input.hpp"
+#include "Output.hpp"
 #include "ReadState.hpp"
 
 namespace Basedline {
 
 class Basedline {
 	ConsoleHandle con;
+	Output out;
 
 	std::optional<ReadState> readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;

@@ -1,6 +1,5 @@
 #include "ConsoleHandle.hpp"
 
-#include <algorithm>
 #include <cstdio>
 #include <format>
 #include <stdexcept>
@@ -47,9 +46,7 @@ void ConsoleHandle::Cursor::shift (termsize_t dx) {
 }
 
 coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
-#if defined(_WIN32)
-	termsize_t lineWidth = con.csbi().dwSize.X;
-#endif
+	termsize_t lineWidth = con.line_width();
 	termsize_t Y = static_cast<termsize_t> (line + pos / lineWidth);
 	termsize_t X = static_cast<termsize_t> (pos % lineWidth);
 	if (X < 0) [[unlikely]]
@@ -137,6 +134,7 @@ void ConsoleHandle::puts (std::string_view s) {
 	std::fputs (s.data(), stdout);
 }
 
+// TODO: non-VT path is not needed here
 void ConsoleHandle::clear_chars (size_t count) {
 	if (count == 0) [[unlikely]] return;
 	IF_VT {
@@ -185,50 +183,21 @@ termsize_t ConsoleHandle::bottom_line () {
 #endif
 }
 
+termsize_t ConsoleHandle::line_width () {
+#if defined(_WIN32)
+	return csbi().dwSize.X;
+#endif
+}
+
 void ConsoleHandle::scroll (termsize_t linesToScroll) {
 	if (linesToScroll <= 0) [[unlikely]] return;
 	IF_CONPTY std::printf (VT_SU VT_CUU, linesToScroll, linesToScroll);
+	// For CMD no explicit scroll is required
 }
 
 // TODO: cache window size
 bool ConsoleHandle::is_last_column (termsize_t x) {
-#if defined(_WIN32)
-	return x >= csbi().dwSize.X - 1;
-#endif
-}
-
-void ConsoleHandle::adjust_io_lines (termsize_t inputHeight) {
-	inputLine = std::max (bottom_line() - inputHeight + 1, printPos.X > 0 ? printPos.Y + 1 : printPos.Y);
-	IF_CONPTY {
-		printPos.Y -= (inputHeight - 1) - (bottom_line() - inputLine);
-		if (inputLine > bottom_line()) {
-			scroll (1);
-			inputLine--;
-		}
-	}
-}
-
-void ConsoleHandle::recalculate_height (termsize_t& height, size_t len) {
-	termsize_t newHeight = cursor.wrap (inputLine, len).Y - inputLine + 1;
-	if (newHeight > height) [[unlikely]] {
-	termsize_t linesToScroll = newHeight - height;
-	scroll (linesToScroll);
-	IF_CONPTY {
-		inputLine -= linesToScroll;
-		printPos.Y -= linesToScroll;
-	}
-	}
-	height = newHeight;
-}
-
-void ConsoleHandle::adjust_iline_after_restore (ssize_t curPos) {
-#if defined(_WIN32)
-	termsize_t lineWidth = csbi().dwSize.X;
-#endif
-	IF_CONPTY {
-		if (curPos % lineWidth == 0 && curPos > 0)
-			putc ('\n');
-	}
+	return x >= line_width() - 1;
 }
 
 ConsoleHandle::ConsoleHandle () : cursor (*this) {
@@ -244,9 +213,6 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
 	BL_DEBUG ("ConPTY: {}\n", conpty);
 #endif
-
-	printPos = cursor.pos();
-	inputLine = bottom_line();
 }
 
 }

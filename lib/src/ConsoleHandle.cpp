@@ -210,15 +210,15 @@ void ConsoleHandle::adjust_io_lines (termsize_t inputHeight) {
 
 void ConsoleHandle::recalculate_height (termsize_t& height, size_t len) {
 	termsize_t newHeight = cursor.wrap (inputLine, len).Y - inputLine + 1;
-	if (newHeight <= height) [[likely]] return;
-
+	if (newHeight > height) [[unlikely]] {
 	termsize_t linesToScroll = newHeight - height;
 	scroll (linesToScroll);
-	height = newHeight;
 	IF_CONPTY {
 		inputLine -= linesToScroll;
 		printPos.Y -= linesToScroll;
 	}
+	}
+	height = newHeight;
 }
 
 void ConsoleHandle::adjust_iline_after_restore (ssize_t curPos) {

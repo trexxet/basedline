@@ -22,6 +22,8 @@ void ReadState::redraw_with_prompt () {
 	con.puts (prompt);
 	con.puts (linebuf);
 	con.inputLine = con.bottom_line() - inputHeight + 1;
+
+	con.adjust_iline_after_restore (prompt.length() + linebuf.length());
 	con.cursor.move (con.cursor.wrap (con.inputLine, prompt.length() + linebufCursor));
 	dirty = false;
 }

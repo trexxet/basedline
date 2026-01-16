@@ -221,6 +221,16 @@ void ConsoleHandle::recalculate_height (termsize_t& height, size_t len) {
 	}
 }
 
+void ConsoleHandle::adjust_iline_after_restore (ssize_t curPos) {
+#if defined(_WIN32)
+	termsize_t lineWidth = csbi().dwSize.X;
+#endif
+	IF_CONPTY {
+		if (curPos % lineWidth == 0 && curPos > 0)
+			putc ('\n');
+	}
+}
+
 ConsoleHandle::ConsoleHandle () : cursor (*this) {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);

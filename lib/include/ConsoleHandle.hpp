@@ -61,6 +61,7 @@ public:
 	bool is_last_column (termsize_t x);
 	void adjust_io_lines (termsize_t inputHeight);
 	void recalculate_height (termsize_t& height, size_t len);
+	void adjust_iline_after_restore (ssize_t curPos);
 
 	ConsoleHandle ();
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);

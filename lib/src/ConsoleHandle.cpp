@@ -19,6 +19,11 @@
 
 namespace Basedline {
 
+// Current: 10 per print, 4 per input, 17 on no events
+#if defined(BASEDLINE_DEBUG)
+size_t csbiCalls = 0;
+#endif
+
 coord_t ConsoleHandle::Cursor::pos () {
 #if defined(_WIN32)
 	return con.csbi().dwCursorPosition;
@@ -62,6 +67,9 @@ CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (!GetConsoleScreenBufferInfo (hOut, &csbi)) [[unlikely]]
 		throw std::runtime_error (std::format ("Can't get CSBI for ConsoleHandle hOut {}", hOut));
+# if defined(BASEDLINE_DEBUG)
+	csbiCalls++;
+# endif
 	return csbi;
 }
 #endif

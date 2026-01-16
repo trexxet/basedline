@@ -14,6 +14,7 @@ namespace Basedline {
 
 class ConsoleHandle {
 	friend class Cursor;
+
 #if defined(_WIN32)
 	HANDLE hIn = INVALID_HANDLE_VALUE;
 	HANDLE hOut = INVALID_HANDLE_VALUE;
@@ -21,6 +22,7 @@ class ConsoleHandle {
 	bool conpty = false;
 	bool vt = false;
 #endif
+
 	bool configured = false;
 
 public:
@@ -61,6 +63,7 @@ public:
 	bool is_last_column (termsize_t x);
 
 	ConsoleHandle ();
+
 	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);
 };
 

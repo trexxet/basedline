@@ -86,6 +86,11 @@ Basedline::Basedline () : out (con) {
 Basedline::~Basedline () {
 	if (!con.unconfigure())
 		std::fputs ("Failed to restore terminal configuration", stderr);
+
+#if defined(_WIN32) && defined(BASEDLINE_DEBUG)
+	extern size_t csbiCalls;
+	fdbg_inst().print (std::format ("CSBI calls: {}\n", csbiCalls).c_str());
+#endif
 }
 
 }

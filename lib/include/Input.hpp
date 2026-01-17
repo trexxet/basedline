@@ -12,11 +12,15 @@ class ConsoleHandle;
 
 struct RawInput {
 	enum class Type { Unknown, Key, Resize } type = Type::Unknown;
+	union {
+		struct {
 #if defined(_WIN32)
-	CHAR ch;
-	WORD vkey;
-	DWORD mods;
+			CHAR ch;
+			WORD vkey;
+			DWORD mods;
 #endif
+		} key;
+	} ev;
 };
 
 class Input {

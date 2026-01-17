@@ -121,13 +121,22 @@ RawInput ConsoleHandle::get_raw_input () {
 
 	if (!ReadConsoleInput (hIn, &inputRec, 1, &inputCount) || inputCount != 1)
 		return rawInput;
-	if (inputRec.EventType != KEY_EVENT || !inputRec.Event.KeyEvent.bKeyDown)
-		return rawInput;
 
-	rawInput.type = RawInput::Type::Key;
-	rawInput.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
-	rawInput.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode;
-	rawInput.mods = inputRec.Event.KeyEvent.dwControlKeyState;
+	switch (inputRec.EventType) {
+		[[likely]] case KEY_EVENT:
+			if (!inputRec.Event.KeyEvent.bKeyDown) break;
+			rawInput.type = RawInput::Type::Key;
+			rawInput.ev.key = {
+				.ch   = inputRec.Event.KeyEvent.uChar.AsciiChar,
+				.vkey = inputRec.Event.KeyEvent.wVirtualKeyCode,
+				.mods = inputRec.Event.KeyEvent.dwControlKeyState
+			};
+			break;
+		case WINDOW_BUFFER_SIZE_EVENT:
+			break;
+		default: break;
+	}
+
 #endif
 	return rawInput;
 }

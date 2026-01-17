@@ -7,8 +7,8 @@ namespace Basedline {
 
 void Input::process_control_key (const RawInput& rawInput) {
 #if defined(_WIN32)
-	flags[Input::Flags::HAS_CTRL] = rawInput.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
-	switch (rawInput.vkey) {
+	flags[Input::Flags::HAS_CTRL] = rawInput.ev.key.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+	switch (rawInput.ev.key.vkey) {
 		case VK_RETURN:
 			flags[Input::Flags::IS_EOL] = true;
 			break;
@@ -36,7 +36,7 @@ void Input::process_control_key (const RawInput& rawInput) {
 
 Input Input::make_from_raw (const RawInput& rawInput) {
 	Input input;
-	input.c = static_cast<int> (rawInput.ch);
+	input.c = static_cast<int> (rawInput.ev.key.ch);
 	input.flags[Input::Flags::OK] = true;
 	input.process_control_key (rawInput);
 	return input;

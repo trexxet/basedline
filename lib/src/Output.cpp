@@ -3,10 +3,8 @@
 #include <algorithm>
 
 #if defined(_WIN32)
-# define IF_VT if (con.is_vt())
 # define IF_CONPTY if (con.is_conpty())
 #else
-# define IF_VT if (true)
 # define IF_CONPTY if (true)
 #endif
 

@@ -8,14 +8,10 @@
 #include "VT.hpp"
 
 #if defined(_WIN32)
-# define IF_VT if (vt)
 # define IF_CONPTY if (conpty)
 #else
-# define IF_VT if (true)
 # define IF_CONPTY if (true)
 #endif
-
-#define TRY_VT 1
 
 namespace Basedline {
 
@@ -32,8 +28,6 @@ coord_t ConsoleHandle::Cursor::pos () {
 
 // TODO: trace moves, find excess ones
 void ConsoleHandle::Cursor::move (coord_t pos) {
-	// For some unknown reason, Microslop's cmd won't move cursor up
-	// if it's on the bottom of srWindow even when VT is enabled
 	IF_CONPTY {
 		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
@@ -79,17 +73,14 @@ bool ConsoleHandle::configure () {
 	DWORD outMode = hOutModeSave |
 		ENABLE_PROCESSED_OUTPUT |
 		ENABLE_WRAP_AT_EOL_OUTPUT;
+	bool vt = hOutModeSave & ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	IF_CONPTY {
-		vt = true;
-	} else if (TRY_VT) {
-		outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-		vt = SetConsoleMode (hOut, outMode);
-		BL_DEBUG ("VT mode: {}\n", vt);
+		if (!vt)
+			outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	} else {
 		if (vt)
-			return configured = true;
-		outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			outMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	}
-	BL_DEBUG ("VT mode: {}\n", vt);
 	configured = SetConsoleMode (hOut, outMode);
 #endif
 	return configured;
@@ -166,7 +157,6 @@ void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	if (from + linesToClear > scrBufSize.Y) [[unlikely]] linesToClear = scrBufSize.Y - from;
 #endif
 
-	// This one won't work as well in Microslop's CMD + VT
 	IF_CONPTY {
 		std::printf (VT_DECSC VT_CUP VT_DL VT_DECSR, from + 1, 1, linesToClear);
 	} else {

@@ -20,7 +20,6 @@ class ConsoleHandle {
 	HANDLE hOut = INVALID_HANDLE_VALUE;
 	DWORD hOutModeSave;
 	bool conpty = false;
-	bool vt = false;
 #endif
 
 	bool configured = false;
@@ -33,19 +32,17 @@ public:
 	private:
 		ConsoleHandle& con;
 		const bool& conpty;
-		const bool& vt;
 	public:
 		coord_t pos ();
 		void move (coord_t pos);
 		void shift (termsize_t dx);
 		coord_t wrap (termsize_t line, ssize_t pos);
 
-		Cursor (ConsoleHandle& con) : con (con), vt (con.vt), conpty (con.conpty) { }
+		Cursor (ConsoleHandle& con) : con (con), conpty (con.conpty) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 
 	inline bool is_conpty () const { return conpty; }
-	inline bool is_vt () const { return vt; }
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();

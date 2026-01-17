@@ -22,8 +22,8 @@ class Basedline {
 
 	OptString read_input ();
 	/// @return true if should continue fetching input
-	bool process_input (Input& input);
-	void line_edit (Input& input);
+	bool process_input (KeyInput& input);
+	void line_edit (KeyInput& input);
 
 	void do_print ();
 public:

@@ -13,7 +13,7 @@ OptString Basedline::read_input () {
 	size_t read = 0;
 	readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
-		Input input = Input::get (con);
+		KeyInput input = KeyInput::get (con);
 		if (!process_input (input))
 			return std::move (readState->linebuf);
 		read++;
@@ -21,7 +21,7 @@ OptString Basedline::read_input () {
 	return std::nullopt;
 }
 
-bool Basedline::process_input (Input& input) {
+bool Basedline::process_input (KeyInput& input) {
 	if (!input.ok()) [[unlikely]] return true; // just ignore input we can't parse now
 	if (input.is_eol()) [[unlikely]] return false;
 	// handle resize
@@ -32,7 +32,7 @@ bool Basedline::process_input (Input& input) {
 	return true;
 }
 
-void Basedline::line_edit (Input& input) {
+void Basedline::line_edit (KeyInput& input) {
 	LineEdit::apply (input, readState.value());
 	if (input.is_left() || input.is_bkspc())
 		con.cursor.shift (-1);

@@ -5,57 +5,59 @@
 
 namespace Basedline {
 
-void Input::process_control_key (const RawInput& rawInput) {
+void KeyInput::process_control_key (const RawInput& rawInput) {
 #if defined(_WIN32)
-	flags[Input::Flags::HAS_CTRL] = rawInput.ev.key.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+	flags[KeyInput::Flags::HAS_CTRL] = rawInput.ev.key.mods & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
 	switch (rawInput.ev.key.vkey) {
 		case VK_RETURN:
-			flags[Input::Flags::IS_EOL] = true;
+			flags[KeyInput::Flags::IS_EOL] = true;
 			break;
 		case VK_LEFT:
-			flags[Input::Flags::IS_LEFT] = true;
+			flags[KeyInput::Flags::IS_LEFT] = true;
 			break;
 		case VK_RIGHT:
-			flags[Input::Flags::IS_RIGHT] = true;
+			flags[KeyInput::Flags::IS_RIGHT] = true;
 			break;
 		case VK_BACK:
-			flags[Input::Flags::IS_BKSPC] = true;
+			flags[KeyInput::Flags::IS_BKSPC] = true;
 			break;
 		case VK_DELETE:
-			flags[Input::Flags::IS_DEL] = true;
+			flags[KeyInput::Flags::IS_DEL] = true;
 			break;
 		case 'D':
 		case 'Z':
-			if (flags[Input::Flags::HAS_CTRL])
-				flags[Input::Flags::IS_EOL] = true;
+			if (flags[KeyInput::Flags::HAS_CTRL])
+				flags[KeyInput::Flags::IS_EOL] = true;
 			break;
 		default: break;
 	}
 #endif
 }
 
-Input Input::make_from_raw (const RawInput& rawInput) {
-	Input input;
-	input.c = static_cast<int> (rawInput.ev.key.ch);
-	input.flags[Input::Flags::OK] = true;
-	input.process_control_key (rawInput);
-	return input;
+KeyInput KeyInput::make_from_raw (const RawInput& rawInput) {
+	KeyInput kinput;
+	kinput.c = static_cast<int> (rawInput.ev.key.ch);
+	kinput.flags[KeyInput::Flags::OK] = true;
+	kinput.process_control_key (rawInput);
+	return kinput;
 }
 
-Input Input::get (ConsoleHandle& con) {
+KeyInput KeyInput::get (ConsoleHandle& con) {
 	RawInput rawInput = con.get_raw_input();
 	if (rawInput.type == RawInput::Type::Unknown)
-		return Input::make_err();
-	Input input = Input::make_from_raw (rawInput);
+		return KeyInput::make_err();
+	if (rawInput.type == RawInput::Type::Resize)
+		return KeyInput::make_err();
+	KeyInput kinput = KeyInput::make_from_raw (rawInput);
 
 #if defined(_WIN32) && 0
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
-				input.flags[Input::Flags::HAS_CTRL] ? "CTRL" : "",
-				rawInput.mods, rawInput.vkey, input.c, 
-				input.is_print() ? (char) input.c : ' ');
+				kinput.flags[KeyInput::Flags::HAS_CTRL] ? "CTRL" : "",
+				rawInput.mods, rawInput.vkey, kinput.c, 
+				kinput.is_print() ? (char) kinput.c : ' ');
 #endif
 
-	return input;
+	return kinput;
 }
 
 }

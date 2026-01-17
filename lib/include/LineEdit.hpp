@@ -5,7 +5,7 @@
 
 namespace Basedline::LineEdit {
 
-bool is_lineedit (const Input& input);
-void apply (Input& input, ReadState& rs);
+bool is_lineedit (const KeyInput& input);
+void apply (KeyInput& input, ReadState& rs);
 
 }

@@ -20,10 +20,11 @@ struct RawInput {
 			DWORD mods;
 #endif
 		} key;
+		coord_t newSize;
 	} ev;
 };
 
-class Input {
+class KeyInput {
 	void process_control_key (const RawInput& rawInput);
 public:
 	int c;
@@ -43,9 +44,9 @@ public:
 	inline bool is_bkspc () const { return flags[Flags::IS_BKSPC]; }
 	inline bool is_print () const { return std::isprint (c); }
 
-	static Input make_from_raw (const RawInput& rawInput);
-	static Input make_err () { return {}; }
-	static Input get (ConsoleHandle& con);
+	static KeyInput make_from_raw (const RawInput& rawInput);
+	static KeyInput make_err () { return {}; }
+	static KeyInput get (ConsoleHandle& con);
 };
 
 }

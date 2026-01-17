@@ -133,6 +133,8 @@ RawInput ConsoleHandle::get_raw_input () {
 			};
 			break;
 		case WINDOW_BUFFER_SIZE_EVENT:
+			rawInput.type = RawInput::Type::Resize;
+			rawInput.ev.newSize = inputRec.Event.WindowBufferSizeEvent.dwSize;
 			break;
 		default: break;
 	}

@@ -19,7 +19,7 @@
 
 namespace Basedline {
 
-// Current: 10 per print, 4 per input, 17 on no events
+// Current: 6 per print, 10 on no events
 #if defined(BASEDLINE_DEBUG)
 size_t csbiCalls = 0;
 #endif
@@ -101,6 +101,12 @@ bool ConsoleHandle::unconfigure () {
 #if defined(_WIN32)
 	configured = !SetConsoleMode (hOut, hOutModeSave);
 	return !configured;
+#endif
+}
+
+void ConsoleHandle::refresh_size () {
+#if defined(_WIN32)
+	conSize = csbi().dwSize;
 #endif
 }
 
@@ -192,9 +198,7 @@ termsize_t ConsoleHandle::bottom_line () {
 }
 
 termsize_t ConsoleHandle::line_width () {
-#if defined(_WIN32)
-	return csbi().dwSize.X;
-#endif
+	return conSize.X;
 }
 
 void ConsoleHandle::scroll (termsize_t linesToScroll) {
@@ -220,6 +224,8 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
 	BL_DEBUG ("ConPTY: {}\n", conpty);
+
+	conSize = csbi.dwSize;
 #endif
 }
 

@@ -25,6 +25,8 @@ class ConsoleHandle {
 
 	bool configured = false;
 
+	coord_t conSize;
+
 public:
 	class Cursor {
 	private:
@@ -49,6 +51,9 @@ public:
 #endif
 	bool configure ();
 	bool unconfigure ();
+
+	void refresh_size();
+	inline coord_t size() const { return conSize; };
 
 	bool has_input();
 	RawInput get_raw_input ();

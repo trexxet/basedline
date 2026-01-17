@@ -26,6 +26,7 @@ class ConsoleHandle {
 	bool configured = false;
 
 	coord_t conSize;
+	termsize_t botLine;
 
 public:
 	class Cursor {

@@ -19,8 +19,8 @@
 
 namespace Basedline {
 
-// Current: 6 per print, 10 on no events
-#if defined(BASEDLINE_DEBUG)
+// Current: 2 per print, 4 on no events
+#if defined(BASEDLINE_DEBUG) && defined(_WIN32)
 size_t csbiCalls = 0;
 #endif
 
@@ -61,7 +61,6 @@ coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
 	else return {X, Y};
 }
 
-// TODO: cache csbi
 #if defined(_WIN32)
 CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -106,7 +105,9 @@ bool ConsoleHandle::unconfigure () {
 
 void ConsoleHandle::refresh_size () {
 #if defined(_WIN32)
-	conSize = csbi().dwSize;
+	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
+	conSize = csbi.dwSize;
+	IF_CONPTY botLine = csbi.srWindow.Bottom;
 #endif
 }
 
@@ -148,23 +149,12 @@ void ConsoleHandle::puts (std::string_view s) {
 	std::fputs (s.data(), stdout);
 }
 
-// TODO: non-VT path is not needed here
 void ConsoleHandle::clear_chars (size_t count) {
 	if (count == 0) [[unlikely]] return;
-	IF_VT {
-		static std::string spaces;
-		if (count > spaces.length())
-			spaces.append (count - spaces.length(), ' ');
-		std::fwrite (spaces.data(), 1, count, stdout);
-	} else {
-#if defined(_WIN32)
-		CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
-		coord_t startPos = cursor.pos();
-		DWORD written;
-		FillConsoleOutputCharacter (hOut, ' ', count, startPos, &written);
-		FillConsoleOutputAttribute (hOut, csbi.wAttributes, count, startPos, &written);
-#endif
-	}
+	static std::string spaces;
+	if (count > spaces.length())
+		spaces.append (count - spaces.length(), ' ');
+	std::fwrite (spaces.data(), 1, count, stdout);
 }
 
 void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
@@ -190,11 +180,14 @@ void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	}
 }
 
-// TODO: cache window size
 termsize_t ConsoleHandle::bottom_line () {
+	IF_CONPTY {
+		return botLine;
+	} else {
 #if defined(_WIN32)
-	return csbi().srWindow.Bottom;
+		return csbi().srWindow.Bottom;
 #endif
+	}
 }
 
 termsize_t ConsoleHandle::line_width () {
@@ -207,7 +200,6 @@ void ConsoleHandle::scroll (termsize_t linesToScroll) {
 	// For CMD no explicit scroll is required
 }
 
-// TODO: cache window size
 bool ConsoleHandle::is_last_column (termsize_t x) {
 	return x >= line_width() - 1;
 }
@@ -226,6 +218,7 @@ ConsoleHandle::ConsoleHandle () : cursor (*this) {
 	BL_DEBUG ("ConPTY: {}\n", conpty);
 
 	conSize = csbi.dwSize;
+	IF_CONPTY botLine = csbi.srWindow.Bottom;
 #endif
 }
 

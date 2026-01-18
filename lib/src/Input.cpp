@@ -1,9 +1,20 @@
 #include "Input.hpp"
 
+#include "Basedlib/Overloaded.hpp"
+
 #include "Console.hpp"
 #include "Debug.hpp"
+#include "LineEdit.hpp"
 
 namespace Basedline {
+
+void KeyInput::apply_line_edit (Console& con, ReadState& rs) {
+	LineEdit::apply (*this, rs);
+	if (is_left() || is_bkspc())
+		con.cursor.shift (-1);
+	if (is_right())
+		con.cursor.shift (1);
+}
 
 void KeyInput::process_control_key (const RawInput& rawInput) {
 #if defined(_WIN32)
@@ -50,6 +61,16 @@ KeyInput KeyInput::make_from_raw (const RawInput& rawInput) {
 	return kinput;
 }
 
+bool KeyInput::process (Console& con, ReadState& rs) {
+	if (!ok()) [[unlikely]] return true; // just ignore input we can't parse now
+	if (is_eol()) [[unlikely]] return false;
+	// TODO: handle autocomplete
+	// TODO: handle history
+	if (LineEdit::is_lineedit (*this))
+		apply_line_edit (con, rs);
+	return true;
+}
+
 Input Input::make (InputVariant&& var) {
 	return Input (std::move (var));
 }
@@ -68,6 +89,15 @@ Input Input::get (Console& con) {
 	}
 
 	return Input::make (std::move (var));
+}
+
+bool Input::process (Console& con, ReadState& rs) {
+	// TODO: value.visit when c++26
+	// TODO: handle resize
+	return std::visit (Basedlib::Overloaded {
+		[&] (KeyInput& k) { return k.process (con, rs); },
+		[&] (ResizeInput& r) { return true; }
+	}, value);
 }
 
 }

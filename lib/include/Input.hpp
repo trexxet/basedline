@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "Defs.hpp"
+#include "ReadState.hpp"
 
 namespace Basedline {
 
@@ -26,6 +27,7 @@ struct RawInput {
 };
 
 class KeyInput {
+	void apply_line_edit (Console& con, ReadState& rs);
 	void process_control_key (const RawInput& rawInput);
 public:
 	int c;
@@ -47,6 +49,8 @@ public:
 
 	static KeyInput make_from_raw (const RawInput& rawInput);
 	static KeyInput make_err () { return {}; }
+
+	bool process (Console& con, ReadState& rs);
 };
 
 struct ResizeInput {
@@ -60,6 +64,9 @@ class Input {
 public:
 	InputVariant value;
 	static Input get (Console& con);
+
+	/// @return true if should continue fetching input
+	bool process (Console& con, ReadState& rs);
 };
 
 }

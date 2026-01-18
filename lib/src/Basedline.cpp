@@ -1,8 +1,5 @@
 #include "Basedline.hpp"
 
-#include "Basedlib/Overloaded.hpp"
-
-#include "LineEdit.hpp"
 #include "Debug.hpp"
 
 #define BL_MAX_PRINT_LIMIT 64
@@ -16,38 +13,11 @@ OptString Basedline::read_input () {
 	readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
-		if (!process_input (input))
+		if (!input.process (con, readState.value()))
 			return std::move (readState->linebuf);
 		read++;
 	}
 	return std::nullopt;
-}
-
-bool Basedline::process_input (Input& input) {
-	// TODO: value.visit when c++26
-	return std::visit (Basedlib::Overloaded {
-		[this] (KeyInput& k) { return process_key_input (k); },
-		[this] (ResizeInput& r) { return true; }
-	}, input.value);
-}
-
-bool Basedline::process_key_input (KeyInput& kinput) {
-	if (!kinput.ok()) [[unlikely]] return true; // just ignore input we can't parse now
-	if (kinput.is_eol()) [[unlikely]] return false;
-	// handle resize
-	// handle autocomplete
-	// handle history
-	if (LineEdit::is_lineedit (kinput))
-		line_edit (kinput);
-	return true;
-}
-
-void Basedline::line_edit (KeyInput& input) {
-	LineEdit::apply (input, readState.value());
-	if (input.is_left() || input.is_bkspc())
-		con.cursor.shift (-1);
-	if (input.is_right())
-		con.cursor.shift (1);
 }
 
 bool Basedline::read (const std::string& prompt) {

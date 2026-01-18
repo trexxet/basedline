@@ -91,11 +91,11 @@ Input Input::get (Console& con) {
 	return Input::make (std::move (var));
 }
 
-bool Input::process (Console& con, ReadState& rs) {
+bool Input::process (Console& con, OptReadState& rs) {
 	// TODO: value.visit when c++26
 	// TODO: handle resize
 	return std::visit (Basedlib::Overloaded {
-		[&] (KeyInput& k) { return k.process (con, rs); },
+		[&] (KeyInput& k) { return rs ? k.process (con, rs.value()) : true; },
 		[&] (ResizeInput& r) { return true; }
 	}, value);
 }

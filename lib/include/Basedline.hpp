@@ -1,6 +1,5 @@
 #pragma once
 
-#include <optional>
 #include <string>
 
 #include "Basedlib/ThreadSafeQueue.hpp"
@@ -16,7 +15,7 @@ class Basedline {
 	Console con;
 	Output out;
 
-	std::optional<ReadState> readState;
+	OptReadState readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
 	OptString read_input ();

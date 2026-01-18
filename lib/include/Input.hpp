@@ -66,7 +66,7 @@ public:
 	static Input get (Console& con);
 
 	/// @return true if should continue fetching input
-	bool process (Console& con, ReadState& rs);
+	bool process (Console& con, OptReadState& rs);
 };
 
 }

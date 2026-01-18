@@ -10,10 +10,11 @@ namespace Basedline {
 // TODO: process input in batches
 OptString Basedline::read_input () {
 	size_t read = 0;
-	readState->linebufCursorSave = readState->linebufCursor;
+	if (readState)
+		readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
-		if (!input.process (con, readState.value()))
+		if (!input.process (con, readState) && readState)
 			return std::move (readState->linebuf);
 		read++;
 	}
@@ -47,8 +48,8 @@ void Basedline::print (std::string s) {
 OptString Basedline::loop () {
 	if (!printQueue.empty())
 		do_print();
+	OptString inputBuf = read_input();
 	if (readState) {
-		OptString inputBuf = read_input();
 		if (inputBuf)
 			readState.reset();
 		else if (readState->dirty)

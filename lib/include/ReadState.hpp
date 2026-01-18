@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "Defs.hpp"
@@ -20,5 +21,7 @@ struct ReadState {
 
 	ReadState (const std::string& prompt) : prompt (prompt) { }
 };
+
+using OptReadState = std::optional<ReadState>;
 
 }

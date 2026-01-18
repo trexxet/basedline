@@ -39,16 +39,6 @@ KeyInput KeyInput::make_from_raw (const RawInput& rawInput) {
 	kinput.c = static_cast<int> (rawInput.ev.key.ch);
 	kinput.flags[KeyInput::Flags::OK] = true;
 	kinput.process_control_key (rawInput);
-	return kinput;
-}
-
-KeyInput KeyInput::get (ConsoleHandle& con) {
-	RawInput rawInput = con.get_raw_input();
-	if (rawInput.type == RawInput::Type::Unknown)
-		return KeyInput::make_err();
-	if (rawInput.type == RawInput::Type::Resize)
-		return KeyInput::make_err();
-	KeyInput kinput = KeyInput::make_from_raw (rawInput);
 
 #if defined(_WIN32) && 0
 	BL_DEBUG ("input {} mods 0x{:04x} virt 0x{:04x} chr 0x{:04x} ('{}')\n",
@@ -58,6 +48,26 @@ KeyInput KeyInput::get (ConsoleHandle& con) {
 #endif
 
 	return kinput;
+}
+
+Input Input::make (InputVariant&& var) {
+	return Input (std::move (var));
+}
+
+Input Input::get (ConsoleHandle& con) {
+	RawInput rawInput = con.get_raw_input();
+	InputVariant var;
+
+	switch (rawInput.type) {
+		case RawInput::Type::Key:
+			var = KeyInput::make_from_raw (rawInput); break;
+		case RawInput::Type::Resize:
+			var = KeyInput::make_err(); break;
+		case RawInput::Type::Unknown: default:
+			var = KeyInput::make_err(); break;
+	}
+
+	return Input::make (std::move (var));
 }
 
 }

@@ -1,5 +1,7 @@
 #include "Basedline.hpp"
 
+#include "Basedlib/Overloaded.hpp"
+
 #include "LineEdit.hpp"
 #include "Debug.hpp"
 
@@ -13,7 +15,7 @@ OptString Basedline::read_input () {
 	size_t read = 0;
 	readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
-		KeyInput input = KeyInput::get (con);
+		Input input = Input::get (con);
 		if (!process_input (input))
 			return std::move (readState->linebuf);
 		read++;
@@ -21,14 +23,22 @@ OptString Basedline::read_input () {
 	return std::nullopt;
 }
 
-bool Basedline::process_input (KeyInput& input) {
-	if (!input.ok()) [[unlikely]] return true; // just ignore input we can't parse now
-	if (input.is_eol()) [[unlikely]] return false;
+bool Basedline::process_input (Input& input) {
+	// TODO: value.visit when c++26
+	return std::visit (Basedlib::Overloaded {
+		[this] (KeyInput& k) { return process_key_input (k); },
+		[this] (ResizeInput& r) { return true; }
+	}, input.value);
+}
+
+bool Basedline::process_key_input (KeyInput& kinput) {
+	if (!kinput.ok()) [[unlikely]] return true; // just ignore input we can't parse now
+	if (kinput.is_eol()) [[unlikely]] return false;
 	// handle resize
 	// handle autocomplete
 	// handle history
-	if (LineEdit::is_lineedit (input))
-		line_edit (input);
+	if (LineEdit::is_lineedit (kinput))
+		line_edit (kinput);
 	return true;
 }
 

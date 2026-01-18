@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cctype>
 #include <string>
+#include <variant>
 
 #include "Defs.hpp"
 
@@ -46,7 +47,19 @@ public:
 
 	static KeyInput make_from_raw (const RawInput& rawInput);
 	static KeyInput make_err () { return {}; }
-	static KeyInput get (ConsoleHandle& con);
+};
+
+struct ResizeInput {
+	coord_t newSize;
+};
+
+using InputVariant = std::variant<KeyInput, ResizeInput>;
+
+class Input {
+	static Input make (InputVariant&& var);
+public:
+	InputVariant value;
+	static Input get (ConsoleHandle& con);
 };
 
 }

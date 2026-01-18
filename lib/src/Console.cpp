@@ -1,4 +1,4 @@
-#include "ConsoleHandle.hpp"
+#include "Console.hpp"
 
 #include <cstdio>
 #include <format>
@@ -20,14 +20,14 @@ namespace Basedline {
 size_t csbiCalls = 0;
 #endif
 
-coord_t ConsoleHandle::Cursor::pos () {
+coord_t Console::Cursor::pos () {
 #if defined(_WIN32)
 	return con.csbi().dwCursorPosition;
 #endif
 }
 
 // TODO: trace moves, find excess ones
-void ConsoleHandle::Cursor::move (coord_t pos) {
+void Console::Cursor::move (coord_t pos) {
 	IF_CONPTY {
 		std::printf (VT_CUP, pos.Y + 1, pos.X + 1);
 	} else {
@@ -38,13 +38,13 @@ void ConsoleHandle::Cursor::move (coord_t pos) {
 	}
 }
 
-void ConsoleHandle::Cursor::shift (termsize_t dx) {
+void Console::Cursor::shift (termsize_t dx) {
 	if (dx == 0) [[unlikely]] return;
 	coord_t currPos = pos();
 	move (wrap (currPos.Y, currPos.X + dx));
 }
 
-coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
+coord_t Console::Cursor::wrap (termsize_t line, ssize_t pos) {
 	termsize_t lineWidth = con.line_width();
 	termsize_t Y = static_cast<termsize_t> (line + pos / lineWidth);
 	termsize_t X = static_cast<termsize_t> (pos % lineWidth);
@@ -56,10 +56,10 @@ coord_t ConsoleHandle::Cursor::wrap (termsize_t line, ssize_t pos) {
 }
 
 #if defined(_WIN32)
-CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
+CONSOLE_SCREEN_BUFFER_INFO Console::csbi () {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (!GetConsoleScreenBufferInfo (hOut, &csbi)) [[unlikely]]
-		throw std::runtime_error (std::format ("Can't get CSBI for ConsoleHandle hOut {}", hOut));
+		throw std::runtime_error (std::format ("Can't get CSBI for Console hOut {}", hOut));
 # if defined(BASEDLINE_DEBUG)
 	csbiCalls++;
 # endif
@@ -67,7 +67,7 @@ CONSOLE_SCREEN_BUFFER_INFO ConsoleHandle::csbi () {
 }
 #endif
 
-bool ConsoleHandle::configure () {
+bool Console::configure () {
 	if (configured) return true;
 #if defined(_WIN32)
 	DWORD outMode = hOutModeSave |
@@ -86,7 +86,7 @@ bool ConsoleHandle::configure () {
 	return configured;
 }
 
-bool ConsoleHandle::unconfigure () {
+bool Console::unconfigure () {
 	if (!configured) return true;
 #if defined(_WIN32)
 	configured = !SetConsoleMode (hOut, hOutModeSave);
@@ -94,7 +94,7 @@ bool ConsoleHandle::unconfigure () {
 #endif
 }
 
-void ConsoleHandle::refresh_size () {
+void Console::refresh_size () {
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	conSize = csbi.dwSize;
@@ -102,7 +102,7 @@ void ConsoleHandle::refresh_size () {
 #endif
 }
 
-bool ConsoleHandle::has_input () {
+bool Console::has_input () {
 #if defined(_WIN32)
 	DWORD input_events = 0;
 	if (!GetNumberOfConsoleInputEvents (hIn, &input_events))
@@ -113,7 +113,7 @@ bool ConsoleHandle::has_input () {
 #endif
 }
 
-RawInput ConsoleHandle::get_raw_input () {
+RawInput Console::get_raw_input () {
 	RawInput rawInput;
 #if defined(_WIN32)
 	INPUT_RECORD inputRec;
@@ -143,15 +143,15 @@ RawInput ConsoleHandle::get_raw_input () {
 	return rawInput;
 }
 
-void ConsoleHandle::putc (int c) {
+void Console::putc (int c) {
 	std::fputc (c, stdout);
 }
 
-void ConsoleHandle::puts (std::string_view s) {
+void Console::puts (std::string_view s) {
 	std::fputs (s.data(), stdout);
 }
 
-void ConsoleHandle::clear_chars (size_t count) {
+void Console::clear_chars (size_t count) {
 	if (count == 0) [[unlikely]] return;
 	static std::string spaces;
 	if (count > spaces.length())
@@ -159,7 +159,7 @@ void ConsoleHandle::clear_chars (size_t count) {
 	std::fwrite (spaces.data(), 1, count, stdout);
 }
 
-void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
+void Console::clear_lines (termsize_t from, termsize_t linesToClear) {
 	if (linesToClear <= 0) [[unlikely]] return;
 	if (from < 0) [[unlikely]] from = 0;
 #if defined(_WIN32)
@@ -181,7 +181,7 @@ void ConsoleHandle::clear_lines (termsize_t from, termsize_t linesToClear) {
 	}
 }
 
-termsize_t ConsoleHandle::bottom_line () {
+termsize_t Console::bottom_line () {
 	IF_CONPTY {
 		return botLine;
 	} else {
@@ -191,26 +191,26 @@ termsize_t ConsoleHandle::bottom_line () {
 	}
 }
 
-termsize_t ConsoleHandle::line_width () {
+termsize_t Console::line_width () {
 	return conSize.X;
 }
 
-void ConsoleHandle::scroll (termsize_t linesToScroll) {
+void Console::scroll (termsize_t linesToScroll) {
 	if (linesToScroll <= 0) [[unlikely]] return;
 	IF_CONPTY std::printf (VT_SU VT_CUU, linesToScroll, linesToScroll);
 	// For CMD no explicit scroll is required
 }
 
-bool ConsoleHandle::is_last_column (termsize_t x) {
+bool Console::is_last_column (termsize_t x) {
 	return x >= line_width() - 1;
 }
 
-ConsoleHandle::ConsoleHandle () : cursor (*this) {
+Console::Console () : cursor (*this) {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);
 	GetConsoleMode (hOut, &hOutModeSave);
-	BL_DEBUG ("New ConsoleHandle hOut {} hIn {}\n", hOut, hIn);
+	BL_DEBUG ("New Console hOut {} hIn {}\n", hOut, hIn);
 
 	// For some unknown reason, Microslop did not provide a documented way to check if we are being run
 	// in a ConPTY terminal, so use buffer height = window height check as it seems to work for now

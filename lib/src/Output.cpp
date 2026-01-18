@@ -70,7 +70,7 @@ void Output::restore_rs_after_print (ReadState& rs) {
 	redraw_rs_with_prompt (rs);
 }
 
-Output::Output (ConsoleHandle& con) : con (con) {
+Output::Output (Console& con) : con (con) {
 	printPos = con.cursor.pos();
 	inputLine = con.bottom_line();
 }

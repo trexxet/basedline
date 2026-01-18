@@ -5,7 +5,7 @@
 
 #include "Basedlib/ThreadSafeQueue.hpp"
 
-#include "ConsoleHandle.hpp"
+#include "Console.hpp"
 #include "Defs.hpp"
 #include "Input.hpp"
 #include "Output.hpp"
@@ -14,7 +14,7 @@
 namespace Basedline {
 
 class Basedline {
-	ConsoleHandle con;
+	Console con;
 	Output out;
 
 	std::optional<ReadState> readState;

@@ -12,7 +12,7 @@
 
 namespace Basedline {
 
-class ConsoleHandle {
+class Console {
 	friend class Cursor;
 
 #if defined(_WIN32)
@@ -30,7 +30,7 @@ class ConsoleHandle {
 public:
 	class Cursor {
 	private:
-		ConsoleHandle& con;
+		Console& con;
 		const bool& conpty;
 	public:
 		coord_t pos ();
@@ -38,7 +38,7 @@ public:
 		void shift (termsize_t dx);
 		coord_t wrap (termsize_t line, ssize_t pos);
 
-		Cursor (ConsoleHandle& con) : con (con), conpty (con.conpty) { }
+		Cursor (Console& con) : con (con), conpty (con.conpty) { }
 		BASEDLINE_CLASS_NO_COPY_MOVE (Cursor);
 	} cursor;
 
@@ -65,9 +65,9 @@ public:
 	void scroll (termsize_t linesToScroll);
 	bool is_last_column (termsize_t x);
 
-	ConsoleHandle ();
+	Console ();
 
-	BASEDLINE_CLASS_NO_COPY_MOVE (ConsoleHandle);
+	BASEDLINE_CLASS_NO_COPY_MOVE (Console);
 };
 
 }

@@ -1,6 +1,6 @@
 #include "Input.hpp"
 
-#include "ConsoleHandle.hpp"
+#include "Console.hpp"
 #include "Debug.hpp"
 
 namespace Basedline {
@@ -54,7 +54,7 @@ Input Input::make (InputVariant&& var) {
 	return Input (std::move (var));
 }
 
-Input Input::get (ConsoleHandle& con) {
+Input Input::get (Console& con) {
 	RawInput rawInput = con.get_raw_input();
 	InputVariant var;
 

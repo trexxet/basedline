@@ -9,7 +9,7 @@
 
 namespace Basedline {
 
-class ConsoleHandle;
+class Console;
 
 struct RawInput {
 	enum class Type { Unknown, Key, Resize } type = Type::Unknown;
@@ -59,7 +59,7 @@ class Input {
 	static Input make (InputVariant&& var);
 public:
 	InputVariant value;
-	static Input get (ConsoleHandle& con);
+	static Input get (Console& con);
 };
 
 }

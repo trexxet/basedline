@@ -47,13 +47,14 @@ public:
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
+	void set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi);
 #endif
 	bool configure ();
 	bool unconfigure ();
 
 	bool pendingResize = false;
 	std::chrono::time_point<std::chrono::steady_clock> lastResizeReq;
-	void refresh_size();
+	bool refresh_size();
 	inline coord_t size() const { return conSize; };
 
 	bool has_input();
@@ -63,9 +64,14 @@ public:
 	void puts (std::string_view s);
 	void clear_chars (size_t count);
 	void clear_lines (termsize_t from, termsize_t linesToClear);
+
+	termsize_t top_line ();
 	termsize_t bottom_line ();
 	termsize_t line_width ();
+	termsize_t height ();
+
 	void scroll (termsize_t linesToScroll);
+	void scroll_newlines (termsize_t linesToScroll);
 	bool is_last_column (termsize_t x);
 
 	Console ();

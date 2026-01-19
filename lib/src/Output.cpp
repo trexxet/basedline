@@ -19,17 +19,30 @@ void Output::print (std::string_view s) {
 	}
 }
 
+void Output::scroll_and_reset (OptReadState& rs) {
+	if (rs) recalc_rs_height (rs.value());
+	con.cursor.move ({0, con.bottom_line()});
+	con.scroll_newlines (con.height() + (rs ? 0 : rs->inputHeight) + 1);
+	IF_CONPTY printPos = {0, 0};
+	else printPos = {0, con.top_line()};
+}
+
+termsize_t Output::recalc_rs_height (ReadState& rs) {
+	termsize_t oldHeight = rs.inputHeight;
+	rs.inputHeight = con.cursor.wrap (inputLine, rs.len()).Y - inputLine + 1;
+	return oldHeight;
+}
+
 void Output::redraw_rs_from_cursor (ReadState& rs) {
-	termsize_t newHeight = con.cursor.wrap (inputLine, rs.len()).Y - inputLine + 1;
-	if (newHeight > rs.inputHeight) [[unlikely]] {
-		termsize_t linesToScroll = newHeight - rs.inputHeight;
+	termsize_t oldHeight = recalc_rs_height (rs);
+	if (rs.inputHeight > oldHeight) [[unlikely]] {
+		termsize_t linesToScroll = rs.inputHeight - oldHeight;
 		con.scroll (linesToScroll);
 		IF_CONPTY {
 			inputLine -= linesToScroll;
 			printPos.Y -= linesToScroll;
 		}
 	}
-	rs.inputHeight = newHeight;
 
 	con.puts (std::string_view (rs.linebuf).substr (std::min (rs.linebufCursor, rs.linebufCursorSave)));
 

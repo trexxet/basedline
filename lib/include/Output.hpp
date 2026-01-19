@@ -14,7 +14,10 @@ struct Output {
 	termsize_t inputLine;
 
 	void print (std::string_view s);
+	void scroll_and_reset (OptReadState& rs);
 
+	/// @return Old rs height
+	termsize_t recalc_rs_height (ReadState& rs);
 	void redraw_rs_from_cursor (ReadState& rs);
 	void redraw_rs_with_prompt (ReadState& rs);
 	void restore_rs_after_print (ReadState& rs);

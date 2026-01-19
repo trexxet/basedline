@@ -46,8 +46,11 @@ void Basedline::print (std::string s) {
 }
 
 OptString Basedline::loop () {
-	if (con.pendingResize)
-		con.refresh_size();
+	if (con.pendingResize) {
+		if (con.refresh_size())
+			out.scroll_and_reset (readState);
+		return std::nullopt;
+	}
 	if (!printQueue.empty())
 		do_print();
 	OptString inputBuf = read_input();

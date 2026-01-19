@@ -67,6 +67,16 @@ CONSOLE_SCREEN_BUFFER_INFO Console::csbi () {
 # endif
 	return csbi;
 }
+
+void Console::set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
+	conSize.X = csbi.dwSize.X;
+	IF_CONPTY {
+		botLine = csbi.srWindow.Bottom;
+		conSize.Y = botLine;
+	} else {
+		conSize.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+	}
+}
 #endif
 
 bool Console::configure () {
@@ -96,18 +106,19 @@ bool Console::unconfigure () {
 #endif
 }
 
-void Console::refresh_size () {
+bool Console::refresh_size () {
 	using namespace std::chrono;
 	time_point<steady_clock> now = steady_clock::now();
 	if (duration_cast<milliseconds> (now - lastResizeReq) < milliseconds (RESIZE_SETTLE_MS))
-		return;
+		return false;
+
 #if defined(_WIN32)
-	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
-	conSize = csbi.dwSize;
-	IF_CONPTY botLine = csbi.srWindow.Bottom;
+	set_size (csbi());
 #endif
+
 	BL_DEBUG ("Resized X {} Y {}\n", conSize.X, conSize.Y);
 	pendingResize = false;
+	return true;
 }
 
 bool Console::has_input () {
@@ -189,6 +200,16 @@ void Console::clear_lines (termsize_t from, termsize_t linesToClear) {
 	}
 }
 
+termsize_t Console::top_line () {
+	IF_CONPTY {
+		return 0;
+	} else {
+#if defined(_WIN32)
+		return csbi().srWindow.Top;
+#endif
+	}
+}
+
 termsize_t Console::bottom_line () {
 	IF_CONPTY {
 		return botLine;
@@ -203,10 +224,22 @@ termsize_t Console::line_width () {
 	return conSize.X;
 }
 
+termsize_t Console::height () {
+	return conSize.Y;
+}
+
 void Console::scroll (termsize_t linesToScroll) {
 	if (linesToScroll <= 0) [[unlikely]] return;
 	IF_CONPTY std::printf (VT_SU VT_CUU, linesToScroll, linesToScroll);
 	// For CMD no explicit scroll is required
+}
+
+void Console::scroll_newlines (termsize_t linesToScroll) {
+	if (linesToScroll <= 0) [[unlikely]] return;
+	static std::string newlines;
+	if (linesToScroll > newlines.length())
+		newlines.append (linesToScroll - newlines.length(), '\n');
+	std::fwrite (newlines.data(), 1, linesToScroll, stdout);
 }
 
 bool Console::is_last_column (termsize_t x) {
@@ -226,8 +259,7 @@ Console::Console () : cursor (*this) {
 	conpty = (csbi.dwSize.Y == csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
 	BL_DEBUG ("ConPTY: {}\n", conpty);
 
-	conSize = csbi.dwSize;
-	IF_CONPTY botLine = csbi.srWindow.Bottom;
+	set_size (csbi);
 #endif
 }
 

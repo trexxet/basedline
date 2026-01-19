@@ -13,6 +13,8 @@
 # define IF_CONPTY if (true)
 #endif
 
+#define RESIZE_SETTLE_MS 100
+
 namespace Basedline {
 
 // Current: 2 per print, 4 on no events
@@ -95,11 +97,17 @@ bool Console::unconfigure () {
 }
 
 void Console::refresh_size () {
+	using namespace std::chrono;
+	time_point<steady_clock> now = steady_clock::now();
+	if (duration_cast<milliseconds> (now - lastResizeReq) < milliseconds (RESIZE_SETTLE_MS))
+		return;
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi = this->csbi();
 	conSize = csbi.dwSize;
 	IF_CONPTY botLine = csbi.srWindow.Bottom;
 #endif
+	BL_DEBUG ("Resized X {} Y {}\n", conSize.X, conSize.Y);
+	pendingResize = false;
 }
 
 bool Console::has_input () {

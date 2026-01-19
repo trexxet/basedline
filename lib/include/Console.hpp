@@ -5,6 +5,7 @@
 #include <windows.h>
 #endif
 
+#include <chrono>
 #include <string_view>
 
 #include "Defs.hpp"
@@ -50,6 +51,8 @@ public:
 	bool configure ();
 	bool unconfigure ();
 
+	bool pendingResize = false;
+	std::chrono::time_point<std::chrono::steady_clock> lastResizeReq;
 	void refresh_size();
 	inline coord_t size() const { return conSize; };
 

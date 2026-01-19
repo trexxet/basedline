@@ -55,6 +55,8 @@ public:
 
 struct ResizeInput {
 	coord_t newSize;
+
+	bool process (Console& con);
 };
 
 using InputVariant = std::variant<KeyInput, ResizeInput>;

@@ -1,5 +1,7 @@
 #include "Input.hpp"
 
+#include <chrono>
+
 #include "Basedlib/Overloaded.hpp"
 
 #include "Console.hpp"
@@ -71,6 +73,12 @@ bool KeyInput::process (Console& con, ReadState& rs) {
 	return true;
 }
 
+bool ResizeInput::process (Console& con) {
+	con.lastResizeReq = std::chrono::steady_clock::now();
+	con.pendingResize = true;
+	return true;
+}
+
 Input Input::make (InputVariant&& var) {
 	return Input (std::move (var));
 }
@@ -83,7 +91,7 @@ Input Input::get (Console& con) {
 		case RawInput::Type::Key:
 			var = KeyInput::make_from_raw (rawInput); break;
 		case RawInput::Type::Resize:
-			var = KeyInput::make_err(); break;
+			var = ResizeInput (rawInput.ev.newSize); break;
 		case RawInput::Type::Unknown: default:
 			var = KeyInput::make_err(); break;
 	}
@@ -93,10 +101,9 @@ Input Input::get (Console& con) {
 
 bool Input::process (Console& con, OptReadState& rs) {
 	// TODO: value.visit when c++26
-	// TODO: handle resize
 	return std::visit (Basedlib::Overloaded {
-		[&] (KeyInput& k) { return rs ? k.process (con, rs.value()) : true; },
-		[&] (ResizeInput& r) { return true; }
+		[&] (KeyInput& k)    { return rs ? k.process (con, rs.value()) : true; },
+		[&] (ResizeInput& r) { return r.process (con); }
 	}, value);
 }
 

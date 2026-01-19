@@ -14,8 +14,10 @@ OptString Basedline::read_input () {
 		readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
-		if (!input.process (con, readState) && readState)
+		if (!input.process (con, readState) && readState) {
+			print (std::move (out.echo_rs (readState.value())));
 			return std::move (readState->linebuf);
+		}
 		read++;
 	}
 	return std::nullopt;

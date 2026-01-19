@@ -83,6 +83,15 @@ void Output::restore_rs_after_print (ReadState& rs) {
 	redraw_rs_with_prompt (rs);
 }
 
+std::string Output::echo_rs (ReadState& rs) {
+	std::string echo;
+	if (printPos.X > 0) echo = "\n";
+	echo += rs.prompt;
+	echo += rs.linebuf;
+	echo += '\n';
+	return echo;
+}
+
 Output::Output (Console& con) : con (con) {
 	printPos = con.cursor.pos();
 	inputLine = con.bottom_line();

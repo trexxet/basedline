@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 
 #include "Console.hpp"
@@ -21,6 +22,7 @@ struct Output {
 	void redraw_rs_from_cursor (ReadState& rs);
 	void redraw_rs_with_prompt (ReadState& rs);
 	void restore_rs_after_print (ReadState& rs);
+	std::string echo_rs (ReadState& rs);
 
 	Output (Console& con);
 };

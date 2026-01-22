@@ -1,5 +1,6 @@
 #include "Console.hpp"
 
+#include <chrono>
 #include <cstdio>
 #include <format>
 #include <stdexcept>
@@ -13,7 +14,8 @@
 # define IF_CONPTY if (true)
 #endif
 
-#define RESIZE_SETTLE_MS 100
+using namespace std::chrono_literals;
+#define RESIZE_DEBOUNCE 100ms
 
 namespace Basedline {
 
@@ -107,10 +109,7 @@ bool Console::unconfigure () {
 }
 
 bool Console::refresh_size () {
-	using namespace std::chrono;
-	time_point<steady_clock> now = steady_clock::now();
-	if (duration_cast<milliseconds> (now - lastResizeReq) < milliseconds (RESIZE_SETTLE_MS))
-		return false;
+	if (!resizeDebounce.ready()) return false;
 
 #if defined(_WIN32)
 	set_size (csbi());
@@ -246,7 +245,7 @@ bool Console::is_last_column (termsize_t x) {
 	return x >= line_width() - 1;
 }
 
-Console::Console () : cursor (*this) {
+Console::Console () : cursor (*this), resizeDebounce (RESIZE_DEBOUNCE) {
 #if defined(_WIN32)
 	hIn = GetStdHandle (STD_INPUT_HANDLE);
 	hOut = GetStdHandle (STD_OUTPUT_HANDLE);

@@ -5,8 +5,9 @@
 #include <windows.h>
 #endif
 
-#include <chrono>
 #include <string_view>
+
+#include "Basedlib/DebounceTimer.hpp"
 
 #include "Defs.hpp"
 #include "Input.hpp"
@@ -53,7 +54,7 @@ public:
 	bool unconfigure ();
 
 	bool pendingResize = false;
-	std::chrono::time_point<std::chrono::steady_clock> lastResizeReq;
+	Basedlib::DebounceTimer resizeDebounce;
 	bool refresh_size();
 	inline coord_t size() const { return conSize; };
 

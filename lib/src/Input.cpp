@@ -1,7 +1,5 @@
 #include "Input.hpp"
 
-#include <chrono>
-
 #include "Basedlib/Overloaded.hpp"
 
 #include "Console.hpp"
@@ -74,7 +72,7 @@ bool KeyInput::process (Console& con, ReadState& rs) {
 }
 
 bool ResizeInput::process (Console& con) {
-	con.lastResizeReq = std::chrono::steady_clock::now();
+	con.resizeDebounce.trigger();
 	con.pendingResize = true;
 	return true;
 }

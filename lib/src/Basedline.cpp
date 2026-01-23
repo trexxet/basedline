@@ -31,6 +31,7 @@ bool Basedline::read (const std::string& prompt) {
 }
 
 void Basedline::do_print () {
+	if (outDebounce && !outDebounce->ready()) return;
 	if (readState)
 		con.clear_lines (out.inputLine, readState->inputHeight);
 	con.cursor.move (out.printPos);
@@ -41,6 +42,7 @@ void Basedline::do_print () {
 	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
 	if (readState)
 		out.restore_rs_after_print (readState.value());
+	if (outDebounce) outDebounce->trigger();
 }
 
 void Basedline::print (std::string s) {

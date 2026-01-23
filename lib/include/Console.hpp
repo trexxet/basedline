@@ -48,7 +48,7 @@ public:
 
 #if defined(_WIN32)
 	CONSOLE_SCREEN_BUFFER_INFO csbi ();
-	void set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi);
+	bool set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi);
 #endif
 	bool configure ();
 	bool unconfigure ();

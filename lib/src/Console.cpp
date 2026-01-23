@@ -15,7 +15,7 @@
 #endif
 
 using namespace std::chrono_literals;
-#define RESIZE_DEBOUNCE 100ms
+#define RESIZE_DEBOUNCE 500ms
 
 namespace Basedline {
 
@@ -70,14 +70,20 @@ CONSOLE_SCREEN_BUFFER_INFO Console::csbi () {
 	return csbi;
 }
 
-void Console::set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
+bool Console::set_size (const CONSOLE_SCREEN_BUFFER_INFO& csbi) {
+	bool changed = (conSize.X != csbi.dwSize.X);
 	conSize.X = csbi.dwSize.X;
 	IF_CONPTY {
-		botLine = csbi.srWindow.Bottom;
-		conSize.Y = botLine;
+		termsize_t newY = csbi.srWindow.Bottom;
+		if (!changed) changed = (conSize.Y != newY);
+		botLine = newY;
+		conSize.Y = newY;
 	} else {
-		conSize.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+		termsize_t newY = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+		if (!changed) changed = (conSize.Y != newY);
+		conSize.Y = newY;
 	}
+	return changed;
 }
 #endif
 
@@ -112,12 +118,12 @@ bool Console::refresh_size () {
 	if (!resizeDebounce.ready()) return false;
 
 #if defined(_WIN32)
-	set_size (csbi());
+	bool changed = set_size (csbi());
 #endif
 
-	BL_DEBUG ("Resized X {} Y {}\n", conSize.X, conSize.Y);
+	if (changed) BL_DEBUG ("Resized X {} Y {}\n", conSize.X, conSize.Y);
 	pendingResize = false;
-	return true;
+	return changed;
 }
 
 bool Console::has_input () {

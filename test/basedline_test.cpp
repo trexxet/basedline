@@ -8,6 +8,7 @@
 
 using namespace std::chrono_literals;
 
+/*
 template <typename Duration>
 void test_printer (std::stop_token stop, Basedline::Basedline& bl, Duration timing, bool newline, int n) {
 	std::binary_semaphore sem {0};
@@ -23,8 +24,10 @@ template <typename Duration>
 auto make_printer (Basedline::Basedline& bl, Duration timing, bool newline, int n) {
 	return [&bl, timing, newline, n] (std::stop_token st) { test_printer (st, bl, timing, newline, n); };
 }
+*/
 
 int main() {
+/*
 	Basedline::Basedline bl;
 	Basedline::OptString input;
 
@@ -39,5 +42,6 @@ int main() {
 	while (!(input = bl.loop()));
 	bl.read ("> ");
 	while (!(input = bl.loop()));
+*/
 	return 0;
 }

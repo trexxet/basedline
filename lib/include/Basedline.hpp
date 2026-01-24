@@ -7,19 +7,14 @@
 #include "Basedlib/ThreadSafeQueue.hpp"
 #include "Basedlib/DebounceTimer.hpp"
 
-#include "Console.hpp"
 #include "Defs.hpp"
-#include "Output.hpp"
-#include "ReadState.hpp"
 
 namespace Basedline {
 
 class Basedline {
-	Console con;
-	Output out;
 	std::optional<Basedlib::DebounceTimer> outDebounce;
 
-	OptReadState readState;
+	//OptReadState readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
 	OptString read_input ();

@@ -10,7 +10,8 @@ namespace Basedline {
 // TODO: process input in batches
 OptString Basedline::read_input () {
 	size_t read = 0;
-	if (readState)
+/*
+if (readState)
 		readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
 		Input input = Input::get (con);
@@ -20,17 +21,21 @@ OptString Basedline::read_input () {
 		}
 		read++;
 	}
+*/
 	return std::nullopt;
 }
 
 bool Basedline::read (const std::string& prompt) {
+/*
 	if (readState) return false;
 	readState.emplace (prompt);
 	out.redraw_rs_with_prompt (readState.value());
+*/
 	return true;
 }
 
 void Basedline::do_print () {
+/*
 	if (outDebounce && !outDebounce->ready()) return;
 	if (readState)
 		con.clear_lines (out.inputLine, readState->inputHeight);
@@ -43,6 +48,7 @@ void Basedline::do_print () {
 	if (readState)
 		out.restore_rs_after_print (readState.value());
 	if (outDebounce) outDebounce->trigger();
+*/
 }
 
 void Basedline::print (std::string s) {
@@ -50,6 +56,7 @@ void Basedline::print (std::string s) {
 }
 
 OptString Basedline::loop () {
+/*
 	if (con.pendingResize) {
 		if (con.refresh_size())
 			out.scroll_and_reset (readState);
@@ -65,15 +72,19 @@ OptString Basedline::loop () {
 			out.redraw_rs_from_cursor (readState.value());
 		return inputBuf;
 	}
+*/
 	return std::nullopt;
 }
 
-Basedline::Basedline () : out (con) {
+Basedline::Basedline () {
+/*
 	if (!con.configure())
 		std::fputs ("Failed to configure terminal", stderr);
+*/
 }
 
 Basedline::~Basedline () {
+/*
 	if (!con.unconfigure())
 		std::fputs ("Failed to restore terminal configuration", stderr);
 
@@ -81,6 +92,7 @@ Basedline::~Basedline () {
 	extern size_t csbiCalls;
 	fdbg_inst().print (std::format ("CSBI calls: {}\n", csbiCalls).c_str());
 #endif
+*/
 }
 
 }

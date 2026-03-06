@@ -1,0 +1,4 @@
+set(CURSES_NEED_WIDE TRUE)
+set(CURSES_NEED_NCURSES TRUE) 
+
+find_package(Curses REQUIRED)

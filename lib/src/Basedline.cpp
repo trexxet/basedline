@@ -2,53 +2,28 @@
 
 #include "Debug.hpp"
 
-#define BL_MAX_PRINT_LIMIT 64
 #define BL_MAX_READ_LIMIT 256
 
 namespace Basedline {
 
-// TODO: process input in batches
 OptString Basedline::read_input () {
 	size_t read = 0;
-/*
-if (readState)
-		readState->linebufCursorSave = readState->linebufCursor;
 	while (con.has_input() && read < BL_MAX_READ_LIMIT) {
-		Input input = Input::get (con);
+		InputEvent input = InputEvent::get (con);
 		if (!input.process (con, readState) && readState) {
-			print (std::move (out.echo_rs (readState.value())));
+			//print (std::move (out.echo_rs (readState.value())));
 			return std::move (readState->linebuf);
 		}
 		read++;
 	}
-*/
 	return std::nullopt;
 }
 
 bool Basedline::read (const std::string& prompt) {
-/*
 	if (readState) return false;
 	readState.emplace (prompt);
-	out.redraw_rs_with_prompt (readState.value());
-*/
+	//out.redraw_rs_with_prompt (readState.value());
 	return true;
-}
-
-void Basedline::do_print () {
-/*
-	if (outDebounce && !outDebounce->ready()) return;
-	if (readState)
-		con.clear_lines (out.inputLine, readState->inputHeight);
-	con.cursor.move (out.printPos);
-	size_t printed = 0;
-	do {
-		out.print (printQueue.pop().value());
-		printed++;
-	} while (!printQueue.empty() && printed < BL_MAX_PRINT_LIMIT);
-	if (readState)
-		out.restore_rs_after_print (readState.value());
-	if (outDebounce) outDebounce->trigger();
-*/
 }
 
 void Basedline::print (std::string s) {
@@ -62,21 +37,23 @@ OptString Basedline::loop () {
 			out.scroll_and_reset (readState);
 		return std::nullopt;
 	}
-	if (!printQueue.empty())
-		do_print();
+*/
+	while (!printQueue.empty()) {
+		out.print (printQueue.pop().value());
+	}
+
 	OptString inputBuf = read_input();
 	if (readState) {
 		if (inputBuf)
 			readState.reset();
-		else if (readState->dirty)
-			out.redraw_rs_from_cursor (readState.value());
-		return inputBuf;
 	}
-*/
-	return std::nullopt;
+
+	con.sync();
+
+	return inputBuf;
 }
 
-Basedline::Basedline () {
+Basedline::Basedline (size_t bufLines) :  con (in, out), in (con, bufLines), out (con, bufLines) {
 /*
 	if (!con.configure())
 		std::fputs ("Failed to configure terminal", stderr);

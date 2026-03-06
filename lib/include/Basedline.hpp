@@ -4,35 +4,35 @@
 #include <optional>
 #include <string>
 
+#include "Basedlib/Class.hpp"
 #include "Basedlib/ThreadSafeQueue.hpp"
-#include "Basedlib/DebounceTimer.hpp"
 
+#include "Console.hpp"
 #include "Defs.hpp"
+#include "Input.hpp"
+#include "Output.hpp"
+#include "ReadState.hpp"
 
 namespace Basedline {
 
 class Basedline {
-	std::optional<Basedlib::DebounceTimer> outDebounce;
+	Console con;
+	InputHandler in;
+	OutputHandler out;
 
-	//OptReadState readState;
+	OptReadState readState;
 	Basedlib::ThreadSafeQueue<std::string> printQueue;
 
 	OptString read_input ();
-	void do_print ();
+
 public:
 	bool read (const std::string& prompt);
 	void print (std::string s);
 	OptString loop ();
 
-	template <typename Rep, typename Period>
-	void set_print_interval (std::chrono::duration<Rep, Period> interval) {
-		if (!outDebounce) outDebounce.emplace (interval);
-		outDebounce->trigger();
-	}
-
-	Basedline ();
+	Basedline (size_t bufLines);
 	~Basedline ();
-	BASEDLINE_CLASS_NO_COPY_MOVE (Basedline);
+	BASED_CLASS_NO_COPY_MOVE (Basedline);
 };
 
 }

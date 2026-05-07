@@ -23,7 +23,7 @@ ExternalProject_Add(
 
 ExternalProject_Get_Property(libgrapheme_src INSTALL_DIR)
 
-add_library(libgrapheme STATIC IMPORTED GLOBAL)
+add_library(libgrapheme STATIC IMPORTED)
 set_target_properties(libgrapheme PROPERTIES
 	IMPORTED_LOCATION ${INSTALL_DIR}/lib/${LG_LIB_FILE}
 	INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include

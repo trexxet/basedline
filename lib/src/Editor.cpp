@@ -6,9 +6,23 @@ extern "C" {
 
 namespace Basedline {
 
-void Editor::insert (char8_t byte) {
-	buf.insert (pos, 1, byte);
-	pos++;
+void Editor::accumulate (char8_t byte) {
+	if (byte == 0) [[unlikely]] {
+		acc.clear();
+		return;
+	}
+
+	acc.emplace_back (byte);
+	uint_least32_t cp = GRAPHEME_INVALID_CODEPOINT;
+	size_t processed = grapheme_decode_utf8 (acc.data(), acc.size(), &cp);
+
+	if (cp == GRAPHEME_INVALID_CODEPOINT) {
+		if (processed <= acc.size()) // invalid
+			acc.clear();
+	} else {
+		insert ({reinterpret_cast <const char8_t*> (acc.data()), acc.size()});
+		acc.clear();
+	}
 }
 
 void Editor::insert (std::u8string_view str) {

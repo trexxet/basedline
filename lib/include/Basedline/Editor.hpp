@@ -3,14 +3,17 @@
 #include <string>
 #include <string_view>
 
+#include "Basedlib/Container/StaticVector.hpp"
+
 namespace Basedline {
 
 class Editor {
 	std::u8string buf;
 	size_t pos = 0;
+	Basedlib::StaticVector <char, 4> acc; 
 
 	const char* chbuf_at (size_t i) const noexcept {
-		return reinterpret_cast<const char*> (buf.data() + i);
+		return reinterpret_cast <const char*> (buf.data() + i);
 	}
 	const char* chbuf () const noexcept { return chbuf_at (0); }
 	const char* chbuf_pos () const noexcept { return chbuf_at (pos); }
@@ -20,7 +23,7 @@ public:
 	bool at_end () const noexcept { return pos == buf.size(); }
 	bool empty () const noexcept { return buf.empty(); }
 
-	void insert (char8_t byte);
+	void accumulate (char8_t byte);
 	void insert (std::u8string_view u8str);
 
 	void move_next_grapheme () noexcept;

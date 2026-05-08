@@ -5,7 +5,9 @@
 int main () {
 	Basedline::Editor ed;
 
-	ed.insert ('a');
+	ed.accumulate ('a');
+	ed.accumulate (0xc3);
+	ed.accumulate (0xa9);
 	ed.insert (u8"ы");
 	ed.insert (u8"🙂界𒁲");
 

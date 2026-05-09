@@ -23,6 +23,8 @@ public:
 	bool at_end () const noexcept { return pos == buf.size(); }
 	bool empty () const noexcept { return buf.empty(); }
 
+	void clear () noexcept;
+
 	void accumulate (char8_t byte);
 	void insert (std::u8string_view u8str);
 

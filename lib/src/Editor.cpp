@@ -6,6 +6,12 @@ extern "C" {
 
 namespace Basedline {
 
+void Editor::clear () noexcept {
+	acc.clear();
+	buf.clear();
+	pos = 0;
+}
+
 void Editor::accumulate (char8_t byte) {
 	if (byte == 0) [[unlikely]] {
 		acc.clear();

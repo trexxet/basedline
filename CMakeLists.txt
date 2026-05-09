@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.30)
 project(basedline VERSION 0.1)
 
+enable_testing()
+option(BASEDLINE_BUILD_TESTS "Build basedline tests" OFF)
+option(BASEDLINE_BUILD_DEMOS "Build basedline demos" OFF)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_SCAN_FOR_MODULES FALSE)
 
 add_subdirectory(lib)
-add_subdirectory(demo)
+
+if(BASEDLINE_BUILD_TESTS)
+	add_subdirectory(test)
+endif()
+
+if(BASEDLINE_BUILD_DEMOS)
+	add_subdirectory(demo)
+endif()

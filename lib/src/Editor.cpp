@@ -32,6 +32,7 @@ void Editor::accumulate (char8_t byte) {
 }
 
 void Editor::insert (std::u8string_view str) {
+	acc.clear();
 	buf.insert (pos, str);
 	pos += str.size();
 }

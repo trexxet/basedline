@@ -281,33 +281,16 @@ BT_SCENARIO_TEST (test_ed_move_end) {
 	BT_SUCCESS;
 }
 
-BT_SCENARIO_TEST (test_ed_move_next_grapheme_ascii) {
+BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_ascii) {
 	Editor ed;
 
 	ed.move_next_grapheme();
 	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
-
-	ed.insert (u8"abc");
-	ed.move_begin();
-	ed.move_next_grapheme();
-	BT_ASSERT_EQ (ed.get_u8_pos(), u8"bc");
-	ed.move_next_grapheme();
-	BT_ASSERT_EQ (ed.get_u8_pos(), u8"c");
-	ed.move_next_grapheme();
-	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
-	ed.move_next_grapheme();
-	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
-
-	BT_SUCCESS;
-}
-
-BT_SCENARIO_TEST (test_ed_move_prev_grapheme_ascii) {
-	Editor ed;
-
 	ed.move_prev_grapheme();
 	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
 
 	ed.insert (u8"abc");
+
 	ed.move_prev_grapheme();
 	BT_ASSERT_EQ (ed.get_u8_pos(), u8"c");
 	ed.move_prev_grapheme();
@@ -316,6 +299,15 @@ BT_SCENARIO_TEST (test_ed_move_prev_grapheme_ascii) {
 	BT_ASSERT_EQ (ed.get_u8_pos(), u8"abc");
 	ed.move_prev_grapheme();
 	BT_ASSERT_EQ (ed.get_u8_pos(), u8"abc");
+
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"bc");
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"c");
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
 
 	BT_SUCCESS;
 }
@@ -334,7 +326,7 @@ BT_SCENARIO_TEST (test_ed_move_begin_end_from_middle) {
 	BT_SUCCESS;
 }
 
-BT_SCENARIO_TEST (test_ed_move_next_prev_utf8) {
+BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_utf8) {
 	Editor ed;
 
 	ed.insert (u8"A©é€😀ы界𒁲");
@@ -376,7 +368,7 @@ BT_SCENARIO_TEST (test_ed_move_next_prev_utf8) {
 	BT_SUCCESS;
 }
 
-BT_SCENARIO_TEST (test_ed_move_next_prev_utf8_combine_mark) {
+BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_utf8_combine_mark) {
 	Editor ed;
 
 	ed.insert (u8"e\u0301x");
@@ -399,7 +391,7 @@ BT_SCENARIO_TEST (test_ed_move_next_prev_utf8_combine_mark) {
 	BT_SUCCESS;
 }
 
-BT_SCENARIO_TEST (test_ed_move_next_prev_utf8_zwj) {
+BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_utf8_zwj) {
 	Editor ed;
 
 	ed.insert (u8"a👨‍👩‍👧‍👦b");
@@ -417,7 +409,7 @@ BT_SCENARIO_TEST (test_ed_move_next_prev_utf8_zwj) {
 	BT_SUCCESS;
 }
 
-BT_SCENARIO_TEST (test_ed_move_next_prev_utf8_flag) {
+BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_utf8_flag) {
 	Editor ed;
 
 	ed.insert (u8"a🇷🇺b");
@@ -461,6 +453,140 @@ BT_SCENARIO_TEST (test_ed_insert_reset_acc) {
 	BT_SUCCESS;
 }
 
+BT_SCENARIO_TEST (test_ed_move_next_prev_word_ascii) {
+	Editor ed;
+
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	ed.insert (u8"hello world test");
+
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"test");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"world test");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello world test");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello world test");
+
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"world test");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"test");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_move_next_prev_word_ascii_punctuation) {
+	Editor ed;
+
+	ed.insert (u8"hello,  wor_ld!!\ttest.");
+
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"test.");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"wor_ld!!\ttest.");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello,  wor_ld!!\ttest.");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello,  wor_ld!!\ttest.");
+
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"wor_ld!!\ttest.");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"test.");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_move_next_prev_word_ascii_from_inside_word) {
+	Editor ed;
+
+	ed.insert (u8"hello world");
+
+	ed.move_prev_grapheme();
+	ed.move_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"ld");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"world");
+	ed.move_prev_grapheme();
+	ed.move_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"o world");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello world");
+
+	ed.move_next_grapheme();
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"llo world");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"world");
+	ed.move_next_grapheme();
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"rld");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_move_next_prev_word_ascii_from_separator) {
+	Editor ed;
+
+	ed.insert (u8"hello   world");
+
+	ed.move_prev_word();
+	ed.move_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8" world");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"hello   world");
+
+	ed.move_next_word();
+	ed.move_prev_grapheme();
+	ed.move_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"  world");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"world");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_move_next_prev_word_utf8) {
+	Editor ed;
+
+	ed.insert (u8"Aé, e\u0301ы???   界!!");
+
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"界!!");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"e\u0301ы???   界!!");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"Aé, e\u0301ы???   界!!");
+	ed.move_prev_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"Aé, e\u0301ы???   界!!");
+
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"e\u0301ы???   界!!");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"界!!");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	ed.move_next_word();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
 int main () {
 	return Suite ("testEditor", tests (
 		BT_SUITE_SCENARIO (test_ed_create),
@@ -481,14 +607,18 @@ int main () {
 		BT_SUITE_SCENARIO (test_ed_clear),
 		BT_SUITE_SCENARIO (test_ed_move_begin),
 		BT_SUITE_SCENARIO (test_ed_move_end),
-		BT_SUITE_SCENARIO (test_ed_move_next_grapheme_ascii),
-		BT_SUITE_SCENARIO (test_ed_move_prev_grapheme_ascii),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_ascii),
 		BT_SUITE_SCENARIO (test_ed_move_begin_end_from_middle),
-		BT_SUITE_SCENARIO (test_ed_move_next_prev_utf8),
-		BT_SUITE_SCENARIO (test_ed_move_next_prev_utf8_combine_mark),
-		BT_SUITE_SCENARIO (test_ed_move_next_prev_utf8_zwj),
-		BT_SUITE_SCENARIO (test_ed_move_next_prev_utf8_flag),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_combine_mark),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_zwj),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_flag),
 		BT_SUITE_SCENARIO (test_ed_insert_begin_middle),
-		BT_SUITE_SCENARIO (test_ed_insert_reset_acc)
+		BT_SUITE_SCENARIO (test_ed_insert_reset_acc),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_punctuation),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_from_inside_word),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_from_separator),
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_utf8)
 	)).run_rc();
 }

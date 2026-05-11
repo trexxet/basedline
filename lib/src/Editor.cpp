@@ -39,12 +39,14 @@ void Editor::insert (std::u8string_view str) {
 
 void Editor::move_next_grapheme () noexcept {
 	if (at_end()) [[unlikely]] return;
+	acc.clear();
 	pos += grapheme_next_character_break_utf8 (chbuf_pos(), SIZE_MAX);
 }
 
 // TODO: maybe try optimizing for large strings
 void Editor::move_prev_grapheme () noexcept {
 	if (at_begin()) [[unlikely]] return;
+	acc.clear();
 	size_t i = 0;
 	do {
 		size_t new_pos_next = i + grapheme_next_character_break_utf8 (chbuf_at (i), SIZE_MAX);
@@ -68,6 +70,7 @@ static bool move_word_skip (char8_t c) noexcept {
 
 void Editor::move_next_word () noexcept {
 	if (at_end()) [[unlikely]] return;
+	acc.clear();
 	do {
 		pos += grapheme_next_word_break_utf8 (chbuf_pos(), SIZE_MAX);
 	} while (!at_end() && move_word_skip (*chbuf_pos_u8()));
@@ -76,6 +79,7 @@ void Editor::move_next_word () noexcept {
 // TODO: maybe try optimizing for large strings
 void Editor::move_prev_word () noexcept {
 	if (at_begin()) [[unlikely]] return;
+	acc.clear();
 	do {
 		size_t i = 0;
 		do {
@@ -90,10 +94,12 @@ void Editor::move_prev_word () noexcept {
 }
 
 void Editor::move_begin () noexcept {
+	acc.clear();
 	pos = 0;
 }
 
 void Editor::move_end () noexcept {
+	acc.clear();
 	pos = buf.size();
 }
 

@@ -56,6 +56,39 @@ void Editor::move_prev_grapheme () noexcept {
 	} while (i < pos);
 }
 
+static bool move_word_skip (char8_t c) noexcept {
+	if (c >= 0x80) return false;
+	if (c == u8'_') return false;
+	return (c == u8' ' || c == u8'\t')
+	    || (c >= u8'!' && c <= u8'/')
+	    || (c >= u8':' && c <= u8'@')
+	    || (c >= u8'[' && c <= u8'`')
+	    || (c >= u8'{' && c <= u8'~');
+}
+
+void Editor::move_next_word () noexcept {
+	if (at_end()) [[unlikely]] return;
+	do {
+		pos += grapheme_next_word_break_utf8 (chbuf_pos(), SIZE_MAX);
+	} while (!at_end() && move_word_skip (*chbuf_pos_u8()));
+}
+
+// TODO: maybe try optimizing for large strings
+void Editor::move_prev_word () noexcept {
+	if (at_begin()) [[unlikely]] return;
+	do {
+		size_t i = 0;
+		do {
+			size_t new_pos_next = i + grapheme_next_word_break_utf8 (chbuf_at (i), SIZE_MAX);
+			if (new_pos_next >= pos) {
+				pos = i;
+				break;
+			}
+			i = new_pos_next;
+		} while (i < pos);
+	} while (!at_begin() && move_word_skip (*chbuf_pos_u8()));
+}
+
 void Editor::move_begin () noexcept {
 	pos = 0;
 }

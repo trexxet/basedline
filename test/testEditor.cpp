@@ -587,6 +587,140 @@ BT_SCENARIO_TEST (test_ed_move_next_prev_word_utf8) {
 	BT_SUCCESS;
 }
 
+BT_SCENARIO_TEST (test_ed_erase_empty) {
+	Editor ed;
+
+	ed.insert (u8"");
+	ed.erase_prev_grapheme();
+	ed.erase_pos_grapheme();
+	ed.erase_prev_word();
+	ed.erase_pos_word();
+	ed.erase_begin_to_pos();
+	ed.erase_pos_to_end();
+	BT_ASSERT_EQ (ed.get_u8(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_erase_pos_prev_grapheme) {
+	Editor ed;
+
+	ed.insert (u8"Aы©界𒁲ée\u0301€😀");
+	for (size_t i = 0; i < 5; i++)
+		ed.move_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"𒁲ée\u0301€😀");
+
+	ed.erase_pos_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы©界ée\u0301€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"ée\u0301€😀");
+
+	ed.erase_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы©ée\u0301€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"ée\u0301€😀");
+
+	ed.erase_pos_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы©e\u0301€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"e\u0301€😀");
+
+	ed.erase_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aыe\u0301€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"e\u0301€😀");
+
+	ed.erase_pos_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"€😀");
+
+	ed.erase_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"A€😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"€😀");
+
+	ed.erase_pos_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"A😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"😀");
+
+	ed.erase_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"😀");
+
+	ed.erase_prev_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"😀");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"😀");
+
+	ed.erase_pos_grapheme();
+	BT_ASSERT_EQ (ed.get_u8(), u8"");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_erase_pos_prev_word) {
+	Editor ed;
+
+	ed.insert (u8"Aы, ée\u0301x   фваЫ\u0306Б,,, é??");
+	ed.move_prev_word();
+	ed.move_prev_word();
+	ed.move_next_grapheme();
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"аЫ\u0306Б,,, é??");
+
+	ed.erase_pos_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы, ée\u0301x   фвé??");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"é??");
+
+	ed.erase_prev_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы, ée\u0301x   é??");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"é??");
+
+	ed.erase_prev_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы, é??");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"é??");
+
+	ed.erase_pos_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы, ");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	ed.erase_pos_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"Aы, ");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	ed.erase_prev_word();
+	BT_ASSERT_EQ (ed.get_u8(), u8"");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_erase_pos_begin_end) {
+	Editor ed;
+
+	ed.insert (u8"Aы, ée\u0301x   фваЫ\u0306Б,,, é??");
+	ed.move_prev_word();
+	ed.move_prev_word();
+	ed.move_next_grapheme();
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"аЫ\u0306Б,,, é??");
+
+	ed.erase_begin_to_pos();
+	BT_ASSERT_EQ (ed.get_u8(), u8"аЫ\u0306Б,,, é??");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"аЫ\u0306Б,,, é??");
+	BT_ASSERT (ed.at_begin());
+
+	ed.move_next_grapheme();
+	ed.move_next_grapheme();
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"Б,,, é??");
+
+	ed.erase_pos_to_end();
+	BT_ASSERT_EQ (ed.get_u8(), u8"аЫ\u0306");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+	BT_ASSERT (ed.at_end());
+
+	ed.erase_begin_to_pos();
+	BT_ASSERT_EQ (ed.get_u8(), u8"");
+	BT_ASSERT_EQ (ed.get_u8_pos(), u8"");
+
+	BT_SUCCESS;
+}
+
 int main () {
 	return Suite ("testEditor", tests (
 		BT_SUITE_SCENARIO (test_ed_create),
@@ -619,6 +753,10 @@ int main () {
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_punctuation),
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_from_inside_word),
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii_from_separator),
-		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_utf8)
+		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_utf8),
+		BT_SUITE_SCENARIO (test_ed_erase_empty),
+		BT_SUITE_SCENARIO (test_ed_erase_pos_prev_grapheme),
+		BT_SUITE_SCENARIO (test_ed_erase_pos_prev_word),
+		BT_SUITE_SCENARIO (test_ed_erase_pos_begin_end)
 	)).run_rc();
 }

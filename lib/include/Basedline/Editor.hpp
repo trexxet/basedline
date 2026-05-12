@@ -37,6 +37,13 @@ public:
 	void move_begin () noexcept;
 	void move_end () noexcept;
 
+	void erase_pos_grapheme () noexcept;
+	void erase_prev_grapheme () noexcept;
+	void erase_pos_word () noexcept;
+	void erase_prev_word () noexcept;
+	void erase_begin_to_pos () noexcept;
+	void erase_pos_to_end () noexcept;
+
 	std::string_view   get()        const noexcept { return { chbuf(), buf.size() }; };
 	std::string_view   get_pos()    const noexcept { return { chbuf_pos(), buf.size() - pos }; };
 	std::u8string_view get_u8()     const noexcept { return buf; };

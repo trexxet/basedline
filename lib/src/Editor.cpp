@@ -8,8 +8,8 @@ namespace Basedline {
 
 void Editor::clear () noexcept {
 	acc.clear();
-	buf.clear();
-	pos = 0;
+	_buf.clear();
+	_pos = 0;
 }
 
 void Editor::accumulate (char8_t byte) {
@@ -33,14 +33,14 @@ void Editor::accumulate (char8_t byte) {
 
 void Editor::insert (std::u8string_view str) {
 	acc.clear();
-	buf.insert (pos, str);
-	pos += str.size();
+	_buf.insert (_pos, str);
+	_pos += str.size();
 }
 
 void Editor::move_next_grapheme () noexcept {
 	acc.clear();
 	if (at_end()) [[unlikely]] return;
-	pos += grapheme_next_character_break_utf8 (chbuf_pos(), SIZE_MAX);
+	_pos += grapheme_next_character_break_utf8 (chbuf_tail(), SIZE_MAX);
 }
 
 // TODO: maybe try optimizing for large strings
@@ -50,12 +50,12 @@ void Editor::move_prev_grapheme () noexcept {
 	size_t i = 0;
 	do {
 		size_t new_pos_next = i + grapheme_next_character_break_utf8 (chbuf_at (i), SIZE_MAX);
-		if (new_pos_next == pos) {
-			pos = i;
+		if (new_pos_next == _pos) {
+			_pos = i;
 			break;
 		}
 		i = new_pos_next;
-	} while (i < pos);
+	} while (i < _pos);
 }
 
 static bool move_word_skip (char8_t c) noexcept {
@@ -72,8 +72,8 @@ void Editor::move_next_word () noexcept {
 	acc.clear();
 	if (at_end()) [[unlikely]] return;
 	do {
-		pos += grapheme_next_word_break_utf8 (chbuf_pos(), SIZE_MAX);
-	} while (!at_end() && move_word_skip (*chbuf_pos_u8()));
+		_pos += grapheme_next_word_break_utf8 (chbuf_tail(), SIZE_MAX);
+	} while (!at_end() && move_word_skip (*chbuf_tail_u8()));
 }
 
 // TODO: maybe try optimizing for large strings
@@ -84,76 +84,76 @@ void Editor::move_prev_word () noexcept {
 		size_t i = 0;
 		do {
 			size_t new_pos_next = i + grapheme_next_word_break_utf8 (chbuf_at (i), SIZE_MAX);
-			if (new_pos_next >= pos) {
-				pos = i;
+			if (new_pos_next >= _pos) {
+				_pos = i;
 				break;
 			}
 			i = new_pos_next;
-		} while (i < pos);
-	} while (!at_begin() && move_word_skip (*chbuf_pos_u8()));
+		} while (i < _pos);
+	} while (!at_begin() && move_word_skip (*chbuf_tail_u8()));
 }
 
 void Editor::move_begin () noexcept {
 	acc.clear();
-	pos = 0;
+	_pos = 0;
 }
 
 void Editor::move_end () noexcept {
 	acc.clear();
-	pos = buf.size();
+	_pos = _buf.size();
 }
 
 void Editor::erase_pos_grapheme () noexcept {
 	acc.clear();
 	if (at_end()) [[unlikely]] return;
 
-	const size_t pos_save = pos;
+	const size_t pos_save = _pos;
 	move_next_grapheme();
-	buf.erase (pos_save, pos - pos_save);
-	pos = pos_save;
+	_buf.erase (pos_save, _pos - pos_save);
+	_pos = pos_save;
 }
 
 void Editor::erase_prev_grapheme () noexcept {
 	acc.clear();
 	if (at_begin()) [[unlikely]] return;
 
-	const size_t pos_save = pos;
+	const size_t pos_save = _pos;
 	move_prev_grapheme();
-	buf.erase (pos, pos_save - pos);
+	_buf.erase (_pos, pos_save - _pos);
 }
 
 void Editor::erase_pos_word () noexcept {
 	acc.clear();
 	if (at_end()) [[unlikely]] return;
 
-	const size_t pos_save = pos;
+	const size_t pos_save = _pos;
 	move_next_word();
-	buf.erase (pos_save, pos - pos_save);
-	pos = pos_save;
+	_buf.erase (pos_save, _pos - pos_save);
+	_pos = pos_save;
 }
 
 void Editor::erase_prev_word () noexcept {
 	acc.clear();
 	if (at_begin()) [[unlikely]] return;
 
-	const size_t pos_save = pos;
+	const size_t pos_save = _pos;
 	move_prev_word();
-	buf.erase (pos, pos_save - pos);
+	_buf.erase (_pos, pos_save - _pos);
 }
 
 void Editor::erase_begin_to_pos () noexcept {
 	acc.clear();
 	if (at_begin()) [[unlikely]] return;
 
-	buf.erase (0, pos);
-	pos = 0;
+	_buf.erase (0, _pos);
+	_pos = 0;
 }
 
 void Editor::erase_pos_to_end () noexcept {
 	acc.clear();
 	if (at_end()) [[unlikely]] return;
 
-	buf.erase (pos);
+	_buf.erase (_pos);
 }
 
 }

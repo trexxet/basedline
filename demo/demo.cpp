@@ -11,17 +11,17 @@ int main () {
 	ed.insert (u8"ы");
 	ed.insert (u8"🙂界𒁲");
 
-	std::print ("{}\n", ed.get());
+	std::print ("{}\n", ed.buf());
 
 	ed.move_begin();
 	while (!ed.at_end()) {
-		std::print ("{}\n", ed.get_pos());
+		std::print ("{}\n", ed.buf_tail());
 		ed.move_next_grapheme();
 	}
 
 	while (!ed.at_begin()) {
 		ed.move_prev_grapheme();
-		std::print ("{}\n", ed.get_pos());
+		std::print ("{}\n", ed.buf_tail());
 	}
 
 	return 0;

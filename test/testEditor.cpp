@@ -13,6 +13,7 @@ std::string_view to_string (std::u8string_view u8str) {
 BT_SCENARIO_TEST (test_ed_create) {
 	Editor ed;
 	BT_ASSERT (ed.empty());
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT (ed.at_begin());
 	BT_ASSERT (ed.at_end());
 	BT_SUCCESS;
@@ -24,12 +25,14 @@ BT_SCENARIO_TEST (test_ed_accumulate_ascii) {
 	ed.accumulate ('a');
 	BT_ASSERT_EQ (ed.get_u8(), u8"a");
 	BT_ASSERT (!ed.empty());
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT (!ed.at_begin());
 	BT_ASSERT (ed.at_end());
 
 	ed.accumulate ('b');
-	ed.accumulate (0);
+	BT_ASSERT (ed.acc_empty());
 	ed.accumulate ('c');
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"abc");
 
 	BT_SUCCESS;
@@ -39,14 +42,18 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_2byte) {
 	Editor ed;
 
 	ed.accumulate (0xC3);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate (0xA9);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"é");
 
 	ed.clear();
 	ed.accumulate(0xD0);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0x96);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"Ж");
 
 	BT_SUCCESS;
@@ -56,10 +63,13 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_3byte) {
 	Editor ed;
 
 	ed.accumulate(0xE2);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0x82);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0xAC);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"€");
 
 	BT_SUCCESS;
@@ -69,12 +79,16 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_4byte) {
 	Editor ed;
 
 	ed.accumulate(0xF0);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0x9F);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0x98);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate(0x80);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"😀");
 
 	BT_SUCCESS;
@@ -85,8 +99,10 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_ascii_mixed) {
 
 	ed.accumulate(u8'a');
 	ed.accumulate(0xC3);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"a");
 	ed.accumulate(0xA9);
+	BT_ASSERT (ed.acc_empty());
 	ed.accumulate(u8'b');
 	BT_ASSERT_EQ (ed.get_u8(), u8"aéb");
 
@@ -99,8 +115,10 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_combine_mark) {
 	ed.clear();
 	ed.accumulate ('e');
 	ed.accumulate (0xCC);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"e");
 	ed.accumulate (0x81);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"e\u0301");
 
 	BT_SUCCESS;
@@ -111,7 +129,7 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_null_reset_acc) {
 
 	ed.accumulate (0xC3);
 	ed.accumulate (0);
-	ed.accumulate (0xA9);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
 	BT_ASSERT_EQ (ed.get_u8(), u8"x");
@@ -123,6 +141,7 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_lone_continuation_byte) {
 	Editor ed;
 
 	ed.accumulate (0x80);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
 	BT_ASSERT_EQ (ed.get_u8(), u8"x");
@@ -134,8 +153,10 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_no_continuation_byte) {
 	Editor ed;
 
 	ed.accumulate (0xC3);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('y');
 	BT_ASSERT_EQ (ed.get_u8(), u8"y");
@@ -147,7 +168,9 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_overlong_encoding) {
 	Editor ed;
 
 	ed.accumulate (0xC0);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0xAF);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
 	BT_ASSERT_EQ (ed.get_u8(), u8"x");
@@ -159,8 +182,11 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_utf16_surrogate) {
 	Editor ed;
 
 	ed.accumulate (0xED);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0xA0);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0x80);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
 	BT_ASSERT_EQ (ed.get_u8(), u8"x");
@@ -172,9 +198,13 @@ BT_SCENARIO_TEST (test_ed_accumulate_utf8_cp_out_of_range) {
 	Editor ed;
 
 	ed.accumulate (0xF4);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0x90);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0x80);
+	BT_ASSERT (!ed.acc_empty());
 	ed.accumulate (0x80);
+	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
 	ed.accumulate ('x');
 	BT_ASSERT_EQ (ed.get_u8(), u8"x");
@@ -233,14 +263,14 @@ BT_SCENARIO_TEST (test_ed_insert_sequential_utf8) {
 BT_SCENARIO_TEST (test_ed_clear) {
 	Editor ed;
 
-	ed.accumulate (0xC3);
 	ed.insert (u8"Aы©");
+	ed.accumulate (0xC3);
+	BT_ASSERT (!ed.acc_empty());
 	BT_ASSERT_EQ (ed.get_u8(), u8"Aы©");
 
 	ed.clear();
 	BT_ASSERT_EQ (ed.get_u8(), u8"");
-	ed.accumulate (0xC3);
-	BT_ASSERT_EQ (ed.get_u8(), u8"");
+	BT_ASSERT (ed.acc_empty());
 
 	ed.clear();
 	ed.accumulate ('x');
@@ -427,6 +457,68 @@ BT_SCENARIO_TEST (test_ed_move_next_prev_grapheme_utf8_flag) {
 	BT_SUCCESS;
 }
 
+BT_SCENARIO_TEST (test_ed_move_reset_acc) {
+	Editor ed;
+
+	ed.insert (u8"amogus amogus");
+
+	ed.accumulate (0xC3);
+	ed.move_begin();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_end();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_prev_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_next_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_prev_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_next_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_move_ignored_reset_acc) {
+	Editor ed;
+
+	ed.accumulate (0xC3);
+	ed.move_begin();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_end();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_prev_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_next_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_prev_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.move_next_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	BT_SUCCESS;
+}
+
 BT_SCENARIO_TEST (test_ed_insert_begin_middle) {
 	Editor ed;
 
@@ -447,8 +539,7 @@ BT_SCENARIO_TEST (test_ed_insert_reset_acc) {
 
 	ed.accumulate (0xC3);
 	ed.insert (u8"x");
-	ed.accumulate (0xA9);
-	BT_ASSERT_EQ (ed.get_u8(), u8"x");
+	BT_ASSERT (ed.acc_empty());
 
 	BT_SUCCESS;
 }
@@ -721,6 +812,71 @@ BT_SCENARIO_TEST (test_ed_erase_pos_begin_end) {
 	BT_SUCCESS;
 }
 
+BT_SCENARIO_TEST (test_ed_erase_reset_acc) {
+	Editor ed;
+
+	ed.insert (u8"amogus amogus");
+
+	ed.accumulate (0xC3);
+	ed.erase_prev_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_prev_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_begin_to_pos();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.insert (u8"amogus amogus");
+	ed.move_begin();
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_to_end();
+	BT_ASSERT (ed.acc_empty());
+
+	BT_SUCCESS;
+}
+
+BT_SCENARIO_TEST (test_ed_erase_ignored_reset_acc) {
+	Editor ed;
+
+	ed.accumulate (0xC3);
+	ed.erase_prev_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_prev_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_begin_to_pos();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_grapheme();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_word();
+	BT_ASSERT (ed.acc_empty());
+
+	ed.accumulate (0xC3);
+	ed.erase_pos_to_end();
+	BT_ASSERT (ed.acc_empty());
+
+	BT_SUCCESS;
+}
+
 int main () {
 	return Suite ("testEditor", tests (
 		BT_SUITE_SCENARIO (test_ed_create),
@@ -747,6 +903,8 @@ int main () {
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_combine_mark),
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_zwj),
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_grapheme_utf8_flag),
+		BT_SUITE_SCENARIO (test_ed_move_reset_acc),
+		BT_SUITE_SCENARIO (test_ed_move_ignored_reset_acc),
 		BT_SUITE_SCENARIO (test_ed_insert_begin_middle),
 		BT_SUITE_SCENARIO (test_ed_insert_reset_acc),
 		BT_SUITE_SCENARIO (test_ed_move_next_prev_word_ascii),
@@ -757,6 +915,8 @@ int main () {
 		BT_SUITE_SCENARIO (test_ed_erase_empty),
 		BT_SUITE_SCENARIO (test_ed_erase_pos_prev_grapheme),
 		BT_SUITE_SCENARIO (test_ed_erase_pos_prev_word),
-		BT_SUITE_SCENARIO (test_ed_erase_pos_begin_end)
+		BT_SUITE_SCENARIO (test_ed_erase_pos_begin_end),
+		BT_SUITE_SCENARIO (test_ed_erase_reset_acc),
+		BT_SUITE_SCENARIO (test_ed_erase_ignored_reset_acc)
 	)).run_rc();
 }

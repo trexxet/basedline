@@ -24,6 +24,7 @@ public:
 	bool at_begin () const noexcept { return pos == 0; }
 	bool at_end () const noexcept { return pos == buf.size(); }
 	bool empty () const noexcept { return buf.empty(); }
+	bool acc_empty () const noexcept { return acc.empty(); }
 
 	void clear () noexcept;
 

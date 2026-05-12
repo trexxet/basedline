@@ -13,12 +13,12 @@ class Editor {
 	Basedlib::StaticVector <char, 4> acc;
 
 	const char8_t* chbuf_at_u8 (size_t i) const noexcept { return _buf.data() + i; }
-	const char8_t* chbuf_u8 () const noexcept { return chbuf_at_u8 (0); }
-	const char8_t* chbuf_tail_u8 () const noexcept { return chbuf_at_u8 (_pos); }
+	const char8_t* chbuf_u8 ()            const noexcept { return chbuf_at_u8 (0); }
+	const char8_t* chbuf_tail_u8 ()       const noexcept { return chbuf_at_u8 (_pos); }
 
 	const char* chbuf_at (size_t i) const noexcept { return reinterpret_cast <const char*> (chbuf_at_u8 (i)); }
-	const char* chbuf () const noexcept { return chbuf_at (0); }
-	const char* chbuf_tail () const noexcept { return chbuf_at (_pos); }
+	const char* chbuf ()            const noexcept { return chbuf_at (0); }
+	const char* chbuf_tail ()       const noexcept { return chbuf_at (_pos); }
 
 public:
 	size_t pos () const noexcept { return _pos; }
@@ -50,8 +50,10 @@ public:
 
 	std::string_view   buf ()        const noexcept { return { chbuf(), _buf.size() }; };
 	std::string_view   buf_tail ()   const noexcept { return { chbuf_tail(), _buf.size() - _pos }; };
+	std::string_view   buf_head ()   const noexcept { return { chbuf(), _pos }; };
 	std::u8string_view u8buf ()      const noexcept { return _buf; };
 	std::u8string_view u8buf_tail () const noexcept { return { chbuf_tail_u8(), _buf.size() - _pos }; };
+	std::u8string_view u8buf_head () const noexcept { return { chbuf_u8(), _pos }; };
 };
 
 }

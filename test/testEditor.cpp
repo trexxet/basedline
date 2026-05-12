@@ -16,6 +16,8 @@ BT_SCENARIO_TEST (test_ed_create) {
 	BT_ASSERT (ed.acc_empty());
 	BT_ASSERT (ed.at_begin());
 	BT_ASSERT (ed.at_end());
+	BT_ASSERT_EQ (ed.pos(), 0);
+	BT_ASSERT_EQ (ed.size(), 0);
 	BT_SUCCESS;
 }
 
@@ -217,31 +219,39 @@ BT_SCENARIO_TEST (test_ed_insert_sequential_ascii) {
 
 	ed.insert (u8"");
 	BT_ASSERT_EQ (ed.u8buf(), u8"");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 	BT_ASSERT (ed.empty());
 	BT_ASSERT (ed.at_begin());
 	BT_ASSERT (ed.at_end());
+	BT_ASSERT_EQ (ed.pos(), ed.size());
 
 	ed.insert (u8"a");
 	BT_ASSERT_EQ (ed.u8buf(), u8"a");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"a");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 	BT_ASSERT (!ed.empty());
 	BT_ASSERT (!ed.at_begin());
 	BT_ASSERT (ed.at_end());
+	BT_ASSERT_EQ (ed.pos(), ed.size());
 
 	ed.insert (u8"bc");
 	BT_ASSERT_EQ (ed.u8buf(), u8"abc");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"abc");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 	BT_ASSERT (!ed.empty());
 	BT_ASSERT (!ed.at_begin());
 	BT_ASSERT (ed.at_end());
+	BT_ASSERT_EQ (ed.pos(), ed.size());
 
 	ed.insert (u8"");
 	BT_ASSERT_EQ (ed.u8buf(), u8"abc");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"abc");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 	BT_ASSERT (!ed.empty());
 	BT_ASSERT (!ed.at_begin());
 	BT_ASSERT (ed.at_end());
+	BT_ASSERT_EQ (ed.pos(), ed.size());
 
 	BT_SUCCESS;
 }
@@ -288,8 +298,12 @@ BT_SCENARIO_TEST (test_ed_move_begin) {
 
 	ed.insert (u8"abc");
 	ed.move_begin();
+	BT_ASSERT_EQ (ed.pos(), 0);
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"abc");
 	ed.move_begin();
+	BT_ASSERT_EQ (ed.pos(), 0);
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"abc");
 
 	BT_SUCCESS;
@@ -304,8 +318,12 @@ BT_SCENARIO_TEST (test_ed_move_end) {
 	ed.insert (u8"abc");
 	ed.move_begin();
 	ed.move_end();
+	BT_ASSERT_EQ (ed.pos(), ed.size());
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"abc");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 	ed.move_end();
+	BT_ASSERT_EQ (ed.pos(), ed.size());
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"abc");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"");
 
 	BT_SUCCESS;
@@ -526,9 +544,11 @@ BT_SCENARIO_TEST (test_ed_insert_begin_middle) {
 	ed.move_begin();
 	ed.insert (u8"Aы©");
 	BT_ASSERT_EQ (ed.u8buf(), u8"Aы©é€😀🇷🇺");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"Aы©");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"é€😀🇷🇺");
 	ed.insert (u8"界𒁲");
 	BT_ASSERT_EQ (ed.u8buf(), u8"Aы©界𒁲é€😀🇷🇺");
+	BT_ASSERT_EQ (ed.u8buf_head(), u8"Aы©界𒁲");
 	BT_ASSERT_EQ (ed.u8buf_tail(), u8"é€😀🇷🇺");
 
 	BT_SUCCESS;

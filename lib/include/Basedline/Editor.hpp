@@ -9,7 +9,7 @@ namespace Basedline {
 
 class Editor {
 	std::u8string _buf;
-	size_t _pos = 0;
+	size_t _pos = 0; // byte offset
 	Basedlib::StaticVector <char, 4> acc;
 
 	const char8_t* chbuf_at_u8 (size_t i) const noexcept { return _buf.data() + i; }
@@ -21,8 +21,11 @@ class Editor {
 	const char* chbuf_tail () const noexcept { return chbuf_at (_pos); }
 
 public:
+	size_t pos () const noexcept { return _pos; }
 	bool at_begin () const noexcept { return _pos == 0; }
 	bool at_end () const noexcept { return _pos == _buf.size(); }
+
+	size_t size () const noexcept { return _buf.size(); }
 	bool empty () const noexcept { return _buf.empty(); }
 	bool acc_empty () const noexcept { return acc.empty(); }
 

@@ -156,4 +156,11 @@ void Editor::erase_pos_to_end () noexcept {
 	_buf.erase (_pos);
 }
 
+std::span<const char8_t> Editor::grapheme_at (size_t byte_offset) const noexcept {
+	return {
+		chbuf_at_u8 (byte_offset),
+		grapheme_next_character_break_utf8 (chbuf_at (byte_offset), SIZE_MAX)
+	};
+}
+
 }

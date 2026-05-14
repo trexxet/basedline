@@ -1,6 +1,9 @@
 #include "Basedline/Editor.hpp"
 #include "Basedtest/Suite.hpp"
 
+#include <array>
+#include <ranges>
+
 using namespace Basedline;
 using namespace Basedtest;
 
@@ -897,6 +900,34 @@ BT_SCENARIO_TEST (test_ed_erase_ignored_reset_acc) {
 	BT_SUCCESS;
 }
 
+// I hate microslop
+#ifdef __INTELLISENSE__
+#pragma diag_suppress 146
+#pragma diag_suppress 289
+#pragma diag_suppress 304
+#pragma diag_suppress 3158
+#endif
+
+template <size_t N>
+using utf8arr = std::array<int, N>;
+
+BT_SCENARIO_TEST (test_ed_grapheme_at) {
+	Editor ed;
+
+	ed.insert (u8"Aы©界𒁲ée\u0301€😀");
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (0),  utf8arr {0x41}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (1),  utf8arr {0xD1, 0x8B}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (3),  utf8arr {0xC2, 0xA9}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (5),  utf8arr {0xE7, 0x95, 0x8C}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (8),  utf8arr {0xF0, 0x92, 0x81, 0xB2}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (12), utf8arr {0xC3, 0xA9}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (14), utf8arr {0x65, 0xCC, 0x81}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (17), utf8arr {0xE2, 0x82, 0xAC}));
+	BT_ASSERT (std::ranges::equal (ed.grapheme_at (20), utf8arr {0xF0, 0x9F, 0x98, 0x80}));
+
+	BT_SUCCESS;
+}
+
 int main () {
 	return Suite ("testEditor", tests (
 		BT_SUITE_SCENARIO (test_ed_create),
@@ -937,6 +968,7 @@ int main () {
 		BT_SUITE_SCENARIO (test_ed_erase_pos_prev_word),
 		BT_SUITE_SCENARIO (test_ed_erase_pos_begin_end),
 		BT_SUITE_SCENARIO (test_ed_erase_reset_acc),
-		BT_SUITE_SCENARIO (test_ed_erase_ignored_reset_acc)
+		BT_SUITE_SCENARIO (test_ed_erase_ignored_reset_acc),
+		BT_SUITE_SCENARIO (test_ed_grapheme_at)
 	)).run_rc();
 }

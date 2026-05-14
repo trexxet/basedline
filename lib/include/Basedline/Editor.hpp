@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -54,6 +55,8 @@ public:
 	std::u8string_view u8buf ()      const noexcept { return _buf; };
 	std::u8string_view u8buf_tail () const noexcept { return { chbuf_tail_u8(), _buf.size() - _pos }; };
 	std::u8string_view u8buf_head () const noexcept { return { chbuf_u8(), _pos }; };
+
+	std::span<const char8_t> grapheme_at (size_t byte_offfset) const noexcept;
 };
 
 }

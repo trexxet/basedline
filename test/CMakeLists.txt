@@ -8,3 +8,4 @@ function(add_basedline_test testName)
 endfunction()
 
 add_basedline_test(bl_test_editor testEditor.cpp)
+add_basedline_test(bl_test_width testWidth.cpp)

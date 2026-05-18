@@ -16,6 +16,7 @@ target_compile_definitions(basedline PRIVATE
 
 set(BASEDLINE_SOURCES
 	Editor.cpp
+	Width.cpp
 )
 list(TRANSFORM BASEDLINE_SOURCES PREPEND src/)
 

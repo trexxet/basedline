@@ -71,4 +71,22 @@ int grapheme_width (std::u8string_view u8grapheme) {
 	return std::min (sum, 2);
 }
 
+ssize_t u8string_width (std::u8string_view u8str) {
+	size_t pos = 0;
+	size_t width = 0;
+
+	while (pos < u8str.size()) {
+		size_t graphemeByteSize = grapheme_next_character_break_utf8 (reinterpret_cast <const char*> (u8str.data() + pos), u8str.size() - pos);
+		if (graphemeByteSize == 0) [[unlikely]] break;
+
+		int graphemeWidth = grapheme_width ({u8str.data() + pos, graphemeByteSize});
+		if (graphemeWidth < 0) [[unlikely]] return graphemeWidth;
+
+		width += graphemeWidth;
+		pos += graphemeByteSize;
+	}
+
+	return width;
+}
+
 }

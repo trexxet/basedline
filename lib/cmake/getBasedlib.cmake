@@ -14,7 +14,7 @@ if (NOT TARGET basedlib)
 		message(STATUS "Using Basedlib from git")
 		FetchContent_Declare(
 			basedlib
-			GIT_REPOSITORY https://gitlab.com/trexxet/basedlib.git
+			GIT_REPOSITORY https://gitlab.com/based1337/basedlib.git
 			GIT_TAG        main
 			GIT_SHALLOW    TRUE
 		)

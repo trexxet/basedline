@@ -1,7 +1,5 @@
 #include "Width.hpp"
 
-#include <vector>
-
 extern "C" {
 #include <grapheme.h>
 }
@@ -71,15 +69,15 @@ int grapheme_width (std::u8string_view u8grapheme) {
 	return std::min (sum, 2);
 }
 
-ssize_t u8string_width (std::u8string_view u8str) {
+ssize_t u8string_width (std::u8string_view str) {
 	size_t pos = 0;
 	size_t width = 0;
 
-	while (pos < u8str.size()) {
-		size_t graphemeByteSize = grapheme_next_character_break_utf8 (reinterpret_cast <const char*> (u8str.data() + pos), u8str.size() - pos);
+	while (pos < str.size()) {
+		size_t graphemeByteSize = grapheme_next_character_break_utf8 (reinterpret_cast <const char*> (str.data() + pos), str.size() - pos);
 		if (graphemeByteSize == 0) [[unlikely]] break;
 
-		int graphemeWidth = grapheme_width ({u8str.data() + pos, graphemeByteSize});
+		int graphemeWidth = grapheme_width ({str.data() + pos, graphemeByteSize});
 		if (graphemeWidth < 0) [[unlikely]] return graphemeWidth;
 
 		width += graphemeWidth;
@@ -87,6 +85,38 @@ ssize_t u8string_width (std::u8string_view u8str) {
 	}
 
 	return width;
+}
+
+std::vector<std::u8string_view> wrap (std::u8string_view str, size_t width) {
+	// don't try to fit a 2-width grapheme in 1-width line
+	if (width < 2) [[unlikely]] return {};
+
+	std::vector<std::u8string_view> lines;
+	size_t pos = 0;
+	size_t lineStart = 0;
+	size_t lineWidth = 0;
+
+	while (pos < str.size()) {
+		size_t graphemeByteSize = grapheme_next_character_break_utf8 (reinterpret_cast <const char*> (str.data() + pos), str.size() - pos);
+		if (graphemeByteSize == 0) [[unlikely]] break;
+
+		int graphemeWidth = grapheme_width ({str.data() + pos, graphemeByteSize});
+		if (graphemeWidth < 0) [[unlikely]] break;
+
+		if (lineWidth + graphemeWidth > width) {
+			lines.emplace_back (std::u8string_view {str.data() + lineStart, pos - lineStart});
+			lineStart = pos;
+			lineWidth = 0;
+		}
+
+		lineWidth += graphemeWidth;
+		pos += graphemeByteSize;
+	}
+
+	if (pos > lineStart)
+		lines.emplace_back (std::u8string_view {str.data() + lineStart, pos - lineStart});
+
+	return lines;
 }
 
 }

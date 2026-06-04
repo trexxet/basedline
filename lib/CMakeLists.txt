@@ -17,6 +17,7 @@ target_compile_definitions(basedline PRIVATE
 
 set(BASEDLINE_SOURCES
 	Editor.cpp
+	TTYConf.cpp
 	Width.cpp
 )
 list(TRANSFORM BASEDLINE_SOURCES PREPEND src/)
@@ -25,6 +26,6 @@ target_sources(basedline PRIVATE ${BASEDLINE_SOURCES})
 target_include_directories(basedline PUBLIC include/)
 target_include_directories(basedline PRIVATE include_internal/)
 target_link_libraries(basedline
-	PUBLIC basedlib
-	PRIVATE basedvt libgrapheme
+	PUBLIC basedlib basedvt
+	PRIVATE libgrapheme
 )

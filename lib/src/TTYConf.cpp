@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <print>
 
+#ifndef __WIN32
+#include <unistd.h>
+#endif
+
 namespace Basedline {
 
 #ifdef __WIN32

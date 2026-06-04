@@ -17,6 +17,9 @@ target_compile_definitions(basedline PRIVATE
 
 set(BASEDLINE_SOURCES
 	Editor.cpp
+	Input.cpp
+	InputDispatcher.cpp
+	Screen.cpp
 	TTYConf.cpp
 	Width.cpp
 )

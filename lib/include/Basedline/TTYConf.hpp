@@ -1,13 +1,13 @@
 #pragma once
 
 #ifdef __WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <io.h>
+#undef WIN32_LEAN_AND_MEAN
 // bruh
 #undef STRICT
 #undef DELETE
 #else
-#include <unistd.h>
 #include <termios.h>
 #endif
 

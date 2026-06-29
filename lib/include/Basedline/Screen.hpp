@@ -7,9 +7,14 @@ namespace Basedline {
 
 class Screen {
 	TTYConf ttyconf;
+
+	void clear ();
 public:
 	Input in;
+
 	void render ();
+
+	Screen ();
 };
 
 }

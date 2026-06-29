@@ -5,8 +5,10 @@
 int main () {
 	Basedline::Screen bl;
 
-	bl.in.read();
-	bl.render();
+	for (int i = 0; i < 10; i++) {
+		bl.in.read();
+		bl.render();
+	}
 
 	return 0;
 }

@@ -16,11 +16,13 @@ target_compile_definitions(basedline PRIVATE
 )
 
 set(BASEDLINE_SOURCES
+	Cursor.cpp
 	Editor.cpp
 	Input.cpp
 	InputDispatcher.cpp
 	Screen.cpp
 	TTYConf.cpp
+	VtCommand.cpp
 	Width.cpp
 )
 list(TRANSFORM BASEDLINE_SOURCES PREPEND src/)

@@ -21,7 +21,7 @@ set(BASEDLINE_SOURCES
 	Input.cpp
 	InputDispatcher.cpp
 	Screen.cpp
-	TTYConf.cpp
+	TTY.cpp
 	VtCommand.cpp
 	Width.cpp
 )

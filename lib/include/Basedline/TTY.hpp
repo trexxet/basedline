@@ -1,12 +1,7 @@
 #pragma once
 
 #ifdef __WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
-// bruh
-#undef STRICT
-#undef DELETE
+#include "Basedline/Winwrap.hpp"
 #else
 #include <termios.h>
 #endif
@@ -19,17 +14,26 @@ struct TTYConf {
 	DWORD modeSave;
 
 	bool ok = false;
-	TTYConf();
-	~TTYConf();
+	TTYConf (HANDLE hIn);
+	~TTYConf ();
 };
 #else
 struct TTYConf {
 	termios save;
 
 	bool saved = false, ok = false;
-	TTYConf();
-	~TTYConf();
+	TTYConf ();
+	~TTYConf ();
 };
 #endif
+
+class TTY {
+#ifdef __WIN32
+	HANDLE hIn;
+#endif
+	TTYConf ttyConf;
+public:
+	TTY ();
+};
 
 }

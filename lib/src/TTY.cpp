@@ -1,4 +1,4 @@
-#include "Basedline/TTYConf.hpp"
+#include "Basedline/TTY.hpp"
 
 #include <cstdio>
 #include <print>
@@ -10,13 +10,11 @@
 namespace Basedline {
 
 #ifdef __WIN32
-TTYConf::TTYConf () {
-	hIn = GetStdHandle (STD_INPUT_HANDLE);
+TTYConf::TTYConf (HANDLE hIn) : hIn (hIn) {
 	GetConsoleMode (hIn, &modeSave);
-	DWORD mode = modeSave | ENABLE_VIRTUAL_TERMINAL_INPUT;
-	mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
+	DWORD mode = ENABLE_WINDOW_INPUT | ENABLE_VIRTUAL_TERMINAL_INPUT;
 	if (!SetConsoleMode (hIn, mode)) {
-		std::print ("SetConsoleMode failed\n");
+		std::print (stderr, "SetConsoleMode for hIn failed\n");
 		return;
 	}
 	ok = true;
@@ -56,5 +54,14 @@ TTYConf::~TTYConf () {
 		std::perror ("tcsetattr");
 }
 #endif
+
+#ifdef __WIN32
+TTY::TTY () : hIn (GetStdHandle (STD_INPUT_HANDLE)), ttyConf (hIn)
+#else
+TTY::TTY ()
+#endif
+{
+
+}
 
 }

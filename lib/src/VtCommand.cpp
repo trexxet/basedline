@@ -10,6 +10,8 @@
 
 #define VT_CUH CSI"H"
 #define VT_CUP CSI"%d;%dH"
+#define VT_DECTCEM_L CSI"?25l"
+#define VT_DECTCEM_H CSI"?25h"
 #define VT_DL  CSI"%dM"
 #define VT_ED2 CSI"2J"
 
@@ -27,6 +29,14 @@ void clear_lines (tsize_t from, tsize_t count) {
 
 void cursor_to (tpos_t pos) {
 	std::printf (VT_CUP, pos.y + 1, pos.x + 1);
+}
+
+void cursor_hide () {
+	std::printf (VT_DECTCEM_L);
+}
+
+void cursor_show () {
+	std::printf (VT_DECTCEM_H);
 }
 
 }

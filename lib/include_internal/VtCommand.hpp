@@ -7,5 +7,7 @@ namespace Basedline::VtCommand {
 void clear ();
 void clear_lines (tsize_t from, tsize_t count);
 void cursor_to (tpos_t pos);
+void cursor_hide ();
+void cursor_show ();
 
 }

@@ -7,7 +7,7 @@ int main () {
 
 	for (int i = 0; i < 10; i++) {
 		bl.in.read();
-		bl.render();
+		bl.flush();
 	}
 
 	return 0;

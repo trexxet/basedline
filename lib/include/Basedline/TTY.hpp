@@ -6,6 +6,8 @@
 #include <termios.h>
 #endif
 
+#include "Basedlib/Class.hpp"
+
 namespace Basedline {
 
 #ifdef __WIN32
@@ -34,6 +36,8 @@ class TTY {
 	TTYConf ttyConf;
 public:
 	TTY ();
+
+	BASED_CLASS_NO_COPY_MOVE (TTY);
 };
 
 }

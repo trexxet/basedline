@@ -8,6 +8,8 @@
 #include <unistd.h>
 #endif
 
+#include "Basedline/ScreenBuf.hpp"
+
 #include "InputDispatcher.hpp"
 
 namespace Basedline {
@@ -32,8 +34,8 @@ void Input::read () {
 	decode (std::span (buf, n));
 }
 
-void Input::render () {
-	std::print ("{}", ed.buf());
+void Input::dump (ScreenBuf& screenBuf) {
+	screenBuf.push (ed.buf());
 }
 
 }

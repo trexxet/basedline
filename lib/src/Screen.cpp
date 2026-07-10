@@ -1,6 +1,5 @@
 #include "Basedline/Screen.hpp"
 
-#include <cstdio>
 #include <print>
 
 #include "VtCommand.hpp"
@@ -28,36 +27,19 @@ ScreenConf::~ScreenConf () {
 }
 #endif
 
-void ScreenBuf::push (std::string_view val) {
-	buf.append (val);
-}
-
-void ScreenBuf::flush () {
-	if (buf.empty()) [[unlikely]] return;
-
-	std::fwrite (buf.data(), 1, buf.size(), stdout);
-	std::fflush (stdout);
-
-	buf.clear();
-	if (buf.capacity() > maxSize) {
-		std::string tmp;
-		tmp.reserve (defaultSize);
-		buf.swap (tmp);
-	}
-}
-
-ScreenBuf::ScreenBuf () {
-	buf.reserve (defaultSize);
-}
-
 void Screen::clear () {
 	VtCommand::clear();
+}
+
+void Screen::write (std::string_view str) {
+	screenBuf.push (str);
 }
 
 void Screen::flush () {
 	cursor.set_visible (false);
 	VtCommand::clear_lines (0, 1);
-	in.render();
+	in.dump (screenBuf);
+	screenBuf.flush();
 	cursor.set_visible (true);
 }
 

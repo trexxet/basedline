@@ -8,6 +8,8 @@
 
 namespace Basedline {
 
+class ScreenBuf;
+
 class Input {
 	Editor ed;
 	BasedVT::Parser vtparser;
@@ -15,7 +17,7 @@ class Input {
 	void decode (std::span<uint8_t> buf);
 public:
 	void read ();
-	void render ();
+	void dump (ScreenBuf& screenBuf);
 };
 
 }
